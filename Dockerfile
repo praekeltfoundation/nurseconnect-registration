@@ -4,5 +4,5 @@ COPY . /app
 RUN pip install --no-cache-dir -e . 
 
 ENV DJANGO_SETTINGS_MODULE "nurseconnect_registration.settings"
-RUN ./manage.py collectstatic --noinput
+RUN SECREY_KEY=foo ./manage.py collectstatic --noinput
 CMD ["nurseconnect_registration.wsgi:application"]
