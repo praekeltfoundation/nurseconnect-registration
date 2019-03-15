@@ -1,0 +1,45 @@
+language: python
+python: "3.6"
+cache: pip
+
+matrix:
+  include:
+    # Run tests
+    - services:
+        - postgresql
+      install:
+        - "pip install -e ."
+        - "pip install -r requirements-dev.txt"
+      script:
+        - flake8
+        - mypy .
+        - py.test
+        - createdb nurseconnect_registration
+        - python manage.py makemigrations --dry-run | grep 'No changes detected' || (echo 'There are changes which require migrations.' && exit 1)
+        - black --check .
+        - isort -c -rc .
+
+    # Create docker image on merge to develop
+    - sudo: required
+      dist: trusty
+      services: [docker]
+      env:
+        - IMAGE_NAME=praekeltfoundation/nurseconnect-registration:develop
+        - REGISTRY_USER=praekeltorgdeploy
+        # REGISTRY_PASS
+        - secure: "uKVFGWcWiYpVI9ouObZgt0vHJTzU4KedOGrKmwVLErxxQzo0bfAW7UzZz2AIbCkvVXxmKIHgDk5UkmGw/h13M/S+WHcxUgdiQjINhWTmzWbNd4pxs/l0pCXLiAI1qAFDekLFFCJgSRHQkk/kIEVqjSqwK9vfeqHDad2EPNRNDsa0j0JEE3pjz2IoRPIFNUiuo6cEKl2MGF56eraGEcCdjz339iXdG9Wha/xRyyIRrnt1wArnsvx/WzrpUHOtpFsPOvmilBdZswGbA0YNyPT6/gpnTU9X6H9TajWdEZ22DJMkm0G6qJ5UZwEkbbg16d+Yaif0gneLaZe1MsNWK8/1GciLX1KpkjZDOOYFlylsAvwQUekOdQtMXp7VZV7h/RorA8X3r8CsaG+EU2Y3oNAbytP4OAMWF2aXIyex54DAtI5gAofRYzuijicT3HMdMSXhxzcPQiU6r/pQ0593xgIFbUSMLORTEFLJKQsEsXbVv3LRPGrOepIrMw3FFZhw9QLZaU3MoOz8jgF10BL7UIujR2jET6ySsGSSwTKSN8m4t1HS4Ezxu4m+9dWOkrD+FdRhQGTmFwocIZh4YXxYOkbF2P9NjconjGtVmCyszFf7NScRBu1c1iFRR4dgmFX2VD3eodOj/NM5xnDT0MOXv4aU5ewRe5FXcGIj3awOz3ZMdeg="
+      before_script:
+        - docker pull "$IMAGE_NAME" || true
+        - pip install -r seaworthy/requirements.txt
+      script:
+        - docker build --tag "$IMAGE_NAME" --cache-from "$IMAGE_NAME" .
+        - (cd seaworthy; py.test -v --ncreg-image "$IMAGE_NAME" test.py)
+
+      before_deploy:
+        - pip install docker-ci-deploy==0.3.0
+        - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS"
+      deploy:
+        provider: script
+        script: dcd --version "$(git rev-parse --short HEAD)" --version-latest "$IMAGE_NAME"
+        on:
+          branch: develop
