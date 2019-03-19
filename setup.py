@@ -9,7 +9,12 @@ setup(
     author_email="dev@praekelt.org",
     packages=find_packages(),
     include_package_data=True,
-    install_requires=["Django==2.1.7", "django-environ==0.4.5", "psycopg2==2.7.7"],
+    install_requires=[
+        "Django==2.1.7",
+        "django-environ==0.4.5",
+        "psycopg2==2.7.7",
+        "phonenumberslite=8.10.7",
+    ],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Framework :: Django",
