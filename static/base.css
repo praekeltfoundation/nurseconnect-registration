@@ -1,0 +1,112 @@
+@media (min-width: 20em) {
+    html {
+        font-size: 14px;
+    }
+}
+
+@media (min-width: 30em) {
+    html {
+        font-size: 16px;
+    }
+}
+
+@media screen and (min-width: 800px) {
+    body {
+        max-width: 40em;
+        margin: 0 auto;
+    }
+}
+
+html {
+    background-color: #213d55;
+    font-family: sans-serif;
+    font-weight: 300;
+    line-height: 1.5;
+}
+
+body {
+    background-color: #dae8eb;
+    color: #213d55;
+}
+
+header {
+    background-color: #fff;
+    display: flex;
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: 400;
+    margin: 2.5rem 0;
+}
+
+form label {
+    padding: 1rem 0 0 0;
+    display: block;
+}
+
+form input {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1em;
+    box-sizing: border-box;
+    border-radius: 3px;
+    border-style: none;
+}
+
+form ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+form ul label {
+    padding: 0;
+}
+
+input[type=checkbox] {
+    -webkit-appearance: none;
+    width: 2em;
+    height: 2em;
+    margin: 1em;
+    padding: 4px;
+    border: 1px solid #213d55;
+    background-color: #fff;
+    vertical-align: middle;
+}
+
+input[type=checkbox]:checked {
+    background: #63a4d4;
+}
+
+input[type=submit] {
+    margin-top: 2rem;
+    background-color: #f65;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 2rem;
+}
+
+.SiteHead-brand {
+    margin: 1.5rem;
+    display: block;
+}
+
+.Logo {
+    display: block;
+}
+
+.Logo-graphic {
+    max-width: 8rem;
+}
+
+.Splash {
+    margin-top: 2ren;
+    padding: 2rem;
+    padding-top: 0;
+}
+
+.errorlist {
+    color: #ff2929;
+}

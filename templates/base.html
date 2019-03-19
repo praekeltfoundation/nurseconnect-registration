@@ -1,0 +1,22 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>NurseConnect Registration</title>
+        <link rel="stylesheet" href="{% static "base.css" %}" >
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+
+    <body>
+        <header>
+            <div class="SiteHead-brand">
+                <a href="" class="Logo">
+                    <img src="{% static "logo.png" %}" alt="NurseConnect Logo" class="Logo-graphic">
+                </a>
+            </div>
+        </header>
+        <section action class="Splash">
+            {% block content %}{% endblock content %}
+        </section>
+    </body>
+</html>

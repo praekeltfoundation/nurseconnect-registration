@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>
+Sign up to NurseConnect!
+</h1>
+<p>
+    NurseConnect sends clinical and motivational messages to nurses working in
+    maternal and child health.
+</p>
+<p>
+    You can get a R10 airtime voucher for every coworker you sign up.
+</p>
+<form method="post">
+    {% csrf_token %}
+
+    {% for field in form %}
+        <label for="id_{{ field.name }}"> {{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+            {{ field.errors }}
+        {% endif %}
+    {% endfor %}
+
+    <input type="submit" value="Done">
+</form>
+{% endblock content %}
