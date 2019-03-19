@@ -1,8 +1,8 @@
 from django.urls import path
 
 from registrations.views import (
-    RegistrationDetailsView,
     RegistrationConfirmClinic,
+    RegistrationDetailsView,
     RegistrationSuccess,
 )
 
