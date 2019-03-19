@@ -11,7 +11,7 @@ class RegistrationDetailsTest(TestCase):
         """
         url = reverse("registrations:registration-details")
         r = self.client.get(url)
-        self.assertTemplateUsed(r, "registration_details.html")
+        self.assertTemplateUsed(r, "registrations/registration_details.html")
         self.assertContains(r, '<form method="post">')
 
     def test_msisdn_validation(self):
