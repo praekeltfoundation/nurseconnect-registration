@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<p> Is {{ clinic_name }} your facility? </p>
+<form method="post">
+    {% csrf_token %}
+    <input type="submit" name="yes" value="Yes">
+    <input type="submit" name="no" value="No">
+</form>
+{% endblock %}
