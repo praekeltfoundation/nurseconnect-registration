@@ -34,3 +34,13 @@ class TestHubContainer:
         assert response.status_code == 200
         assert mime_type(response.headers["content-type"]) == "text/html"
         assert "<title>Log in | Django site admin</title>" in response.text
+
+    def test_healthcheck(self, ncreg_container, postgresql_container):
+        """
+        When we try to access the health check, a success should be returned
+        """
+        client = ncreg_container.http_client()
+        response = client.get("/health/", params={"token": "REPLACEME"})
+
+        assert response.status_code == 200
+        assert mime_type(response.headers["content-type"]) == "application/json"
