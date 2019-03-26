@@ -14,6 +14,7 @@ setup(
         "django-environ==0.4.5",
         "psycopg2==2.7.7",
         "phonenumberslite==8.10.7",
+        "django-prometheus==1.0.15",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
