@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from django_prometheus.exports import ExportToDjangoView as metrics
+from nurseconnect_registration.views import TermsAndConditionsView
 
 from nurseconnect_registration.decorators import internal_only
 
@@ -24,4 +25,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("metrics", internal_only(metrics), name="metrics"),
     path("health/", include(("watchman.urls", "health"))),
+    path('terms_and_conditions/', TermsAndConditionsView.as_view()),
 ]
