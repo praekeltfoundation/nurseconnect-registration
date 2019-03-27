@@ -23,4 +23,5 @@ urlpatterns = [
     path("", include(("registrations.urls", "registrations"))),
     path("admin/", admin.site.urls),
     path("metrics", internal_only(metrics), name="metrics"),
+    path("health/", include(("watchman.urls", "health"))),
 ]

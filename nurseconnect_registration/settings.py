@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "registrations",
     "django_prometheus",
+    "watchman",
 ]
 
 MIDDLEWARE = [
@@ -125,3 +126,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = "/static/"
+
+WATCHMAN_TOKENS = env("WATCHMAN_TOKENS", str, "REPLACEME")
+WATCHMAN_TOKEN_NAME = "token"
+WATCHMAN_CHECKS = ("watchman.checks.databases",)

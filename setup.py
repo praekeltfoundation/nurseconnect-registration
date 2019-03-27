@@ -15,6 +15,7 @@ setup(
         "psycopg2==2.7.7",
         "phonenumberslite==8.10.7",
         "django-prometheus==1.0.15",
+        "django-watchman==0.16.0",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
