@@ -15,8 +15,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from django_prometheus.exports import ExportToDjangoView as metrics
+
+from nurseconnect_registration.decorators import internal_only
 
 urlpatterns = [
     path("", include(("registrations.urls", "registrations"))),
     path("admin/", admin.site.urls),
+    path("metrics", internal_only(metrics), name="metrics"),
 ]

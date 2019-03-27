@@ -44,9 +44,11 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "registrations",
+    "django_prometheus",
 ]
 
 MIDDLEWARE = [
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -54,6 +56,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
 ROOT_URLCONF = "nurseconnect_registration.urls"
@@ -82,9 +85,12 @@ WSGI_APPLICATION = "nurseconnect_registration.wsgi.application"
 
 DATABASES = {
     "default": env.db(
-        default="postgres://postgres:@localhost/nurseconnect_registration"
+        default="postgres://postgres:@localhost/nurseconnect_registration",
+        engine="django_prometheus.db.backends.postgresql",
     )
 }
+
+PROMETHEUS_EXPORT_MIGRATIONS = False
 
 
 # Password validation
