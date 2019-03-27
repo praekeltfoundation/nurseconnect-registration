@@ -25,5 +25,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("metrics", internal_only(metrics), name="metrics"),
     path("health/", include(("watchman.urls", "health"))),
-    path('terms_and_conditions/', TermsAndConditionsView.as_view()),
+    path("terms_and_conditions/", TermsAndConditionsView.as_view()),
 ]
