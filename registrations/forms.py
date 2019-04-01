@@ -41,6 +41,17 @@ class RegistrationDetailsForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
     )
 
+    terms_and_conditions = forms.MultipleChoiceField(
+        label=("I accept the Terms and Conditions"),
+        error_messages={
+            "required": (
+                "You must agree to the terms and conditions before registering"
+            )
+        },
+        choices=((True, ""),),
+        widget=forms.CheckboxSelectMultiple,
+    )
+
     def clean_msisdn(self):
         try:
             msisdn = phonenumbers.parse(self.cleaned_data["msisdn"], "ZA")
