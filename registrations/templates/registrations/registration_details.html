@@ -15,11 +15,22 @@ Sign up to NurseConnect!
     {% csrf_token %}
 
     {% for field in form %}
+      <fieldset>
+        {% ifequal field.name 'terms_and_conditions' %}
+          <label for="id_{{ field.name }}"> {{ field }} I agree to the
+          <a href="terms_and_conditions">Terms & Conditions</a>
+          </label>
+          {% if field.errors %}
+            {{ field.errors }}
+          {% endif %}
+        {% else %}
         <label for="id_{{ field.name }}"> {{ field.label }}</label>
         {{ field }}
         {% if field.errors %}
-            {{ field.errors }}
+          {{ field.errors }}
         {% endif %}
+       {% endifequal %}
+    </fieldset>
     {% endfor %}
 
     <input type="submit" value="Done">

@@ -53,6 +53,9 @@ form input {
     border-radius: 3px;
     border-style: none;
 }
+fieldset {
+  border: none;
+}
 
 form ul {
     list-style: none;
@@ -62,6 +65,17 @@ form ul {
 
 form ul label {
     padding: 0;
+}
+
+label[for=id_terms_and_conditions] {
+  display: inline-block;
+}
+label[for=id_terms_and_conditions] > form ul label {
+  display: inline-block;
+}
+label[for=id_terms_and_conditions] ul,
+label[for=id_terms_and_conditions] ul li {
+  display: inline-block;
 }
 
 input[type=checkbox] {
