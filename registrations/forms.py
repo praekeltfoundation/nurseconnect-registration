@@ -48,7 +48,7 @@ class RegistrationDetailsForm(forms.Form):
                 "You must agree to the terms and conditions before registering"
             )
         },
-        choices=((True, ""),),
+        choices=((True, "I agree"),),
         widget=forms.CheckboxSelectMultiple,
     )
 
