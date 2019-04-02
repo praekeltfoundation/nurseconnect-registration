@@ -1,5 +1,6 @@
 import phonenumbers
 from django import forms
+from django.utils.html import format_html, mark_safe
 
 
 class RegistrationDetailsForm(forms.Form):
@@ -42,7 +43,14 @@ class RegistrationDetailsForm(forms.Form):
     )
 
     terms_and_conditions = forms.MultipleChoiceField(
-        label=("I accept the Terms and Conditions"),
+        label=(
+            format_html(
+                "{} <b>{}</b> {}",
+                "Please read the",
+                mark_safe('<a href="terms_and_conditions">Terms & Conditions.</a>'),
+                "Do you agree to them?",
+            )
+        ),
         error_messages={
             "required": (
                 "You must agree to the terms and conditions before registering"
