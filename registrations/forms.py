@@ -1,6 +1,7 @@
 import phonenumbers
 from django import forms
-from django.utils.html import format_html, mark_safe
+from django.utils.html import format_html
+from django.urls import reverse_lazy
 
 
 class RegistrationDetailsForm(forms.Form):
@@ -44,12 +45,8 @@ class RegistrationDetailsForm(forms.Form):
 
     terms_and_conditions = forms.MultipleChoiceField(
         label=(
-            format_html(
-                "{} <b>{}</b> {}",
-                "Please read the",
-                mark_safe('<a href="terms_and_conditions">Terms & Conditions.</a>'),
-                "Do you agree to them?",
-            )
+            format_html('Please read the <a href="{}">Terms & Conditions</a>.',
+                        reverse_lazy('terms_and_conditions'))
         ),
         error_messages={
             "required": (
