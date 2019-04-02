@@ -1,5 +1,8 @@
 import phonenumbers
 from django import forms
+from django.urls import reverse_lazy
+from django.utils.functional import lazy
+from django.utils.html import format_html
 
 
 class RegistrationDetailsForm(forms.Form):
@@ -38,6 +41,20 @@ class RegistrationDetailsForm(forms.Form):
             )
         },
         choices=((True, "Yes"),),
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    terms_and_conditions = forms.MultipleChoiceField(
+        label=lazy(format_html)(
+            'Please read the <a href="{}">Terms & Conditions</a>.',
+            reverse_lazy("registrations:terms_and_conditions"),
+        ),
+        error_messages={
+            "required": (
+                "You must agree to the terms and conditions before registering"
+            )
+        },
+        choices=((True, "I agree"),),
         widget=forms.CheckboxSelectMultiple,
     )
 
