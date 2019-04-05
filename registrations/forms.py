@@ -10,6 +10,10 @@ class RegistrationDetailsForm(forms.Form):
         "Sorry we don't recognise that number. Please enter the cellphone number "
         "again, eg. 0762564722"
     )
+    EXISTING_NUMBER_ERROR_MESSAGE = (
+        "Sorry, but this phone number is already registered. Please enter a new "
+        "cellphone number again"
+    )
     CLINIC_CODE_ERROR_MESSAGE = (
         "Sorry we don't recognise that code. Please enter the 6-digit facility code "
         "again, eg. 535970"
