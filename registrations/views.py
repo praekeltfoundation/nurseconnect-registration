@@ -4,12 +4,23 @@ from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 
 from registrations.forms import RegistrationDetailsForm
+from registrations.models import ReferralLink
 
 
 class RegistrationDetailsView(FormView):
     form_class = RegistrationDetailsForm
     template_name = "registrations/registration_details.html"
     success_url = reverse_lazy("registrations:confirm-clinic")
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            code = kwargs["referral"]
+            referral = ReferralLink.objects.get_from_referral_code(code)
+            request.session["registered_by"] = referral.msisdn
+        except (ReferralLink.DoesNotExist, KeyError):
+            # Don't alert the user, just act like no referral code was given
+            pass
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         self.request.session["registration_details"] = form.cleaned_data

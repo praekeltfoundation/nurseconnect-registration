@@ -16,4 +16,5 @@ urlpatterns = [
         TermsAndConditionsView.as_view(),
         name="terms_and_conditions",
     ),
+    path("<referral>", RegistrationDetailsView.as_view(), name="registration-details"),
 ]
