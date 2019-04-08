@@ -1,16 +1,22 @@
 import phonenumbers
 from django import forms
+from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from django.utils.html import format_html
 
 from registrations.validators import msisdn_validator
+from temba_client.v2 import TembaClient
 
 
 class RegistrationDetailsForm(forms.Form):
     PHONE_NUMBER_ERROR_MESSAGE = (
         "Sorry we don't recognise that number. Please enter the cellphone number "
         "again, eg. 0762564722"
+    )
+    EXISTING_NUMBER_ERROR_MESSAGE = (
+        "Sorry, but this phone number is already registered. Please enter a new "
+        "cellphone number again"
     )
     CLINIC_CODE_ERROR_MESSAGE = (
         "Sorry we don't recognise that code. Please enter the 6-digit facility code "
@@ -63,6 +69,8 @@ class RegistrationDetailsForm(forms.Form):
 
     def clean_msisdn(self):
         msisdn = phonenumbers.parse(self.cleaned_data["msisdn"], "ZA")
+        if self.contact_exists(self.cleaned_data["msisdn"]):
+            raise forms.ValidationError(self.EXISTING_NUMBER_ERROR_MESSAGE)
         return phonenumbers.format_number(msisdn, phonenumbers.PhoneNumberFormat.E164)
 
     def clean_clinic_code(self):
@@ -70,3 +78,9 @@ class RegistrationDetailsForm(forms.Form):
         if not code.isdigit():
             raise forms.ValidationError(self.CLINIC_CODE_ERROR_MESSAGE)
         return code
+
+    def contact_exists(self, msisdn):
+        client = TembaClient(settings.RAPIDPRO_URL, settings.RAPIDPRO_TOKEN)
+        if client.get_contacts(urn='tel:%s' % msisdn).first():
+            return True
+        return False

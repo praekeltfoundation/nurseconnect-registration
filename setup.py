@@ -17,6 +17,7 @@ setup(
         "django-prometheus==1.0.15",
         "django-watchman==0.16.0",
         "hashids==1.2.0",
+        "rapidpro-python==2.1.8",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
