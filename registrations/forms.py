@@ -81,6 +81,11 @@ class RegistrationDetailsForm(forms.Form):
 
     def contact_exists(self, msisdn):
         client = TembaClient(settings.RAPIDPRO_URL, settings.RAPIDPRO_TOKEN)
-        if client.get_contacts(urn='tel:%s' % msisdn).first():
-            return True
+        contact = client.get_contacts(urn='tel:%s' % msisdn).first()
+        if contact:
+            for group in contact.groups:
+                if group.name in ['nurseconnect-sms', 'nurseconnect-whatsapp']:
+                    return True
+                if group.name in ['opted-out']:
+                    return False
         return False
