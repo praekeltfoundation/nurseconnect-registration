@@ -1,5 +1,7 @@
+import responses
 from django.test import TestCase
 from django.urls import reverse
+from urllib.parse import urlencode
 
 from registrations.forms import RegistrationDetailsForm
 from registrations.models import ReferralLink
@@ -57,6 +59,51 @@ class RegistrationDetailsTest(TestCase):
 
         # Invalid number
         form = RegistrationDetailsForm({"msisdn": "+12001230101"})
+        form.is_valid()
+        self.assertIn("msisdn", form.errors)
+
+    @responses.activate
+    def test_contact_exists(self):
+        """
+        If a contact exists in Rapidpro for this number, then we should return
+        an error message
+        """
+
+        responses.add(responses.GET,
+                      'https://test.rapidpro/api/v2/contacts.json?' + urlencode(
+                        {'urn': 'tel:+27820001001'}),
+                      match_querystring=True,
+                      json={"next": None, "previous": None, "results": []}, status=200,
+                      headers={'Authorization': 'Token some_token'})
+
+        form = RegistrationDetailsForm({"msisdn": "+27820001001"})
+        form.is_valid()
+        self.assertNotIn("msisdn", form.errors)
+
+        contact_data = {
+            "next": None,
+            "previous": None,
+            "results": [{
+                "uuid": "09d23a05-47fe-11e4-bfe9-b8f6b119e9ab",
+                "name": "Ben Haggerty",
+                "language": None,
+                "urns": ["tel:+27820001002"],
+                "groups": [],
+                "fields": {},
+                "blocked": None,
+                "stopped": None,
+                "created_on": "2015-11-11T13:05:57.457742Z",
+                "modified_on": "2015-11-11T13:05:57.576056Z"
+            }]
+        }
+
+        responses.add(responses.GET,
+                      'https://test.rapidpro/api/v2/contacts.json?' + urlencode(
+                        {'urn': 'tel:+27820001002'}),
+                      json=contact_data, status=200,
+                      headers={'Authorization': 'Token some_token'})
+
+        form = RegistrationDetailsForm({"msisdn": "+27820001002"})
         form.is_valid()
         self.assertIn("msisdn", form.errors)
 
