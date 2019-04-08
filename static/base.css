@@ -40,12 +40,12 @@ h1 {
     margin: 2.5rem 0;
 }
 
-form label {
+label {
     padding: 1rem 0 0 0;
     display: block;
 }
 
-form input {
+input {
     width: 100%;
     padding: 1rem;
     font-size: 1em;
@@ -54,13 +54,13 @@ form input {
     border-style: none;
 }
 
-form ul {
+ul {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-form ul label {
+ul label {
     padding: 0;
 }
 
@@ -88,6 +88,13 @@ input[type=submit] {
     border-radius: 2rem;
 }
 
+button {
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 2rem;
+    padding: 1rem;
+}
+
 .SiteHead-brand {
     margin: 1.5rem;
     display: block;
@@ -109,4 +116,8 @@ input[type=submit] {
 
 .errorlist {
     color: #ff2929;
+}
+
+.referral {
+    width: 100%;
 }

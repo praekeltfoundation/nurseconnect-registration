@@ -116,6 +116,7 @@ class ClinicConfirmTests(TestCase):
         """
         session = self.client.session
         session["clinic_name"] = "Test clinic"
+        session["registration_details"] = {"msisdn": "+27820001001"}
         session.save()
         r = self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
         self.assertEqual(self.client.session["channel"], "WhatsApp")
@@ -151,9 +152,26 @@ class RegistrationSuccessTests(TestCase):
         session = self.client.session
         session["channel"] = "WhatsApp"
         session["foo"] = "bar"
+        session["registration_details"] = {"msisdn": "+27820001001"}
         session.save()
 
         r = self.client.get(reverse("registrations:success"))
         self.assertContains(r, "Thank you")
+        self.assertEqual(r.context["channel"], "WhatsApp")
+        self.assertEqual(sorted(self.client.session.keys()), [])
+
+    def test_referral_link(self):
+        """
+        After a successful registration, it should display the user's referral link
+        """
+        session = self.client.session
+        session["channel"] = "WhatsApp"
+        session["foo"] = "bar"
+        session["registration_details"] = {"msisdn": "+27820001001"}
+        session.save()
+
+        r = self.client.get(reverse("registrations:success"))
+        referral = ReferralLink.objects.get(msisdn="+27820001001")
+        self.assertContains(r, referral.path)
         self.assertEqual(r.context["channel"], "WhatsApp")
         self.assertEqual(sorted(self.client.session.keys()), [])

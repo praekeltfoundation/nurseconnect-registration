@@ -67,6 +67,11 @@ class RegistrationSuccess(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["channel"] = self.request.session.pop("channel")
+
+        msisdn = self.request.session["registration_details"]["msisdn"]
+        referral, _ = ReferralLink.objects.get_or_create(msisdn=msisdn)
+        context["referral_link"] = referral.build_uri(self.request)
+
         # Clear the session, since we no longer need it.
         self.request.session.clear()
         return context
