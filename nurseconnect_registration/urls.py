@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from django_prometheus.exports import ExportToDjangoView as metrics
+from rest_framework.documentation import include_docs_urls
 
 from nurseconnect_registration.decorators import internal_only
 
@@ -23,5 +24,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("metrics", internal_only(metrics), name="metrics"),
     path("health/", include(("watchman.urls", "health"))),
+    path("api-auth", include("rest_framework.urls")),
+    path("api/docs/", include_docs_urls(title="NurseConnect Registration")),
     path("", include(("registrations.urls", "registrations"))),
 ]
