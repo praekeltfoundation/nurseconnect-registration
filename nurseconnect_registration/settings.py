@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     "registrations",
     "django_prometheus",
     "watchman",
+    "rest_framework",
+    "rest_framework.authtoken",
 ]
 
 MIDDLEWARE = [
@@ -130,3 +132,11 @@ STATIC_URL = "/static/"
 WATCHMAN_TOKENS = env("WATCHMAN_TOKENS", str, "REPLACEME")
 WATCHMAN_TOKEN_NAME = "token"
 WATCHMAN_CHECKS = ("watchman.checks.databases",)
+
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ),
+}
