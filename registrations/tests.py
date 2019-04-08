@@ -38,10 +38,16 @@ class RegistrationDetailsTest(TestCase):
         self.assertTemplateUsed(r, "registrations/registration_details.html")
         self.assertContains(r, '<form method="post">')
 
+    @responses.activate
     def test_msisdn_validation(self):
         """
         The phone number field should be validated, and returned in E164 format
         """
+        responses.add(responses.GET,
+                      'https://test.rapidpro/api/v2/contacts.json',
+                      json={"next": None, "previous": None, "results": []}, status=200,
+                      headers={'Authorization': 'Token some_token'})
+
         form = RegistrationDetailsForm({"msisdn": "0820001001"})
         form.is_valid()
         self.assertNotIn("msisdn", form.errors)
@@ -68,11 +74,9 @@ class RegistrationDetailsTest(TestCase):
         If a contact exists in Rapidpro for this number, then we should return
         an error message
         """
-
         responses.add(responses.GET,
                       'https://test.rapidpro/api/v2/contacts.json?' + urlencode(
                         {'urn': 'tel:+27820001001'}),
-                      match_querystring=True,
                       json={"next": None, "previous": None, "results": []}, status=200,
                       headers={'Authorization': 'Token some_token'})
 
@@ -121,10 +125,15 @@ class RegistrationDetailsTest(TestCase):
         form.is_valid()
         self.assertIn("clinic_code", form.errors)
 
+    @responses.activate
     def test_form_success(self):
         """
         Should put the form details and clinic name in the session
         """
+        responses.add(responses.GET,
+                      'https://test.rapidpro/api/v2/contacts.json',
+                      json={"next": None, "previous": None, "results": []}, status=200,
+                      headers={'Authorization': 'Token some_token'})
         r = self.client.post(
             reverse("registrations:registration-details"),
             {
