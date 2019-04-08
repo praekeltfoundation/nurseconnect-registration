@@ -16,6 +16,7 @@ setup(
         "phonenumberslite==8.10.7",
         "django-prometheus==1.0.15",
         "django-watchman==0.16.0",
+        "hashids==1.2.0",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",

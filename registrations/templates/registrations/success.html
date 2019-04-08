@@ -3,4 +3,17 @@
 {% block content %}
 <p> Thank you! You will get NurseConnect messages on {{ channel }}.</p>
 <p> Send this link to a friend. If they sign up you will get R10 airtime!</p>
+
+<input id="referral" type="text" readonly onclick="this.select()" value={{ referral_link }}>
+<button id="copy_button">Copy link</button>
+
+<script>
+    var button = document.getElementById("copy_button");
+    button.addEventListener("click", function(event) {
+        var referral = document.getElementById("referral");
+        referral.focus();
+        referral.select();
+        document.execCommand("copy");
+    });
+</script>
 {% endblock %}

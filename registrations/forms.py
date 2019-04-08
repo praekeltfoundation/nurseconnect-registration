@@ -4,6 +4,8 @@ from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from django.utils.html import format_html
 
+from registrations.validators import msisdn_validator
+
 
 class RegistrationDetailsForm(forms.Form):
     PHONE_NUMBER_ERROR_MESSAGE = (
@@ -18,6 +20,7 @@ class RegistrationDetailsForm(forms.Form):
     msisdn = forms.CharField(
         label="Cellphone number of the nurse being registered",
         error_messages={"required": PHONE_NUMBER_ERROR_MESSAGE},
+        validators=[msisdn_validator],
     )
     clinic_code = forms.CharField(
         label="Clinic code of the nurse being registered",
@@ -59,14 +62,7 @@ class RegistrationDetailsForm(forms.Form):
     )
 
     def clean_msisdn(self):
-        try:
-            msisdn = phonenumbers.parse(self.cleaned_data["msisdn"], "ZA")
-        except phonenumbers.phonenumberutil.NumberParseException:
-            raise forms.ValidationError(self.PHONE_NUMBER_ERROR_MESSAGE)
-        if not phonenumbers.is_possible_number(msisdn):
-            raise forms.ValidationError(self.PHONE_NUMBER_ERROR_MESSAGE)
-        if not phonenumbers.is_valid_number(msisdn):
-            raise forms.ValidationError(self.PHONE_NUMBER_ERROR_MESSAGE)
+        msisdn = phonenumbers.parse(self.cleaned_data["msisdn"], "ZA")
         return phonenumbers.format_number(msisdn, phonenumbers.PhoneNumberFormat.E164)
 
     def clean_clinic_code(self):
