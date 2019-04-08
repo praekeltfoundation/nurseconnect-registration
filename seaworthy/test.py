@@ -29,7 +29,7 @@ class TestHubContainer:
         When we try to access the django admin page, it should be returned
         """
         client = ncreg_container.http_client()
-        response = client.get("/admin")
+        response = client.get("/admin/")
 
         assert response.status_code == 200
         assert mime_type(response.headers["content-type"]) == "text/html"
