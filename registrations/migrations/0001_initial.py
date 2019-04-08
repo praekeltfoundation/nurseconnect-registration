@@ -27,7 +27,10 @@ class Migration(migrations.Migration):
                 (
                     "msisdn",
                     models.CharField(
-                        help_text="The MSISDN of the user who referred the current registration",
+                        help_text=(
+                            "The MSISDN of the user who referred the current "
+                            "registration"
+                        ),
                         max_length=12,
                         unique=True,
                         validators=[registrations.validators.msisdn_validator],
