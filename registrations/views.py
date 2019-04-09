@@ -56,7 +56,7 @@ class RegistrationConfirmOptIn(TemplateView):
         if "yes" in request.POST:
             request.session["channel"] = "WhatsApp"
             return redirect(reverse_lazy("registrations:confirm-clinic"))
-        return redirect(reverse_lazy("registrations:registration-details"))
+        return redirect(reverse_lazy("registrations:reject-optin"))
 
 
 class RegistrationConfirmClinic(TemplateView):

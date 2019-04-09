@@ -1,4 +1,5 @@
 from django.urls import include, path
+from django.views.generic import TemplateView
 from rest_framework import routers
 
 from registrations.api_views import ReferralLinkViewSet
@@ -16,6 +17,11 @@ api_router.register("referral_link", ReferralLinkViewSet)
 urlpatterns = [
     path("", RegistrationDetailsView.as_view(), name="registration-details"),
     path("confirm_optin", RegistrationConfirmOptIn.as_view(), name="confirm-optin"),
+    path(
+        "reject_optin",
+        TemplateView.as_view(template_name="registrations/reject_optin.html"),
+        name="reject-optin"
+    ),
     path("confirm_clinic", RegistrationConfirmClinic.as_view(), name="confirm-clinic"),
     path("success", RegistrationSuccess.as_view(), name="success"),
     path(
