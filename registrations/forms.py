@@ -1,12 +1,11 @@
 import phonenumbers
 from django import forms
-from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from django.utils.html import format_html
 
 from registrations.validators import msisdn_validator
-from temba_client.v2 import TembaClient
+from registrations.utils import get_contact
 
 
 class RegistrationDetailsForm(forms.Form):
@@ -69,8 +68,11 @@ class RegistrationDetailsForm(forms.Form):
 
     def clean_msisdn(self):
         msisdn = phonenumbers.parse(self.cleaned_data["msisdn"], "ZA")
-        if self.contact_exists(self.cleaned_data["msisdn"]):
-            raise forms.ValidationError(self.EXISTING_NUMBER_ERROR_MESSAGE)
+        contact = get_contact(self.cleaned_data["msisdn"])
+        if contact:
+            for group in contact.groups:
+                if group.name in ['nurseconnect-sms', 'nurseconnect-whatsapp']:
+                    raise forms.ValidationError(self.EXISTING_NUMBER_ERROR_MESSAGE)
         return phonenumbers.format_number(msisdn, phonenumbers.PhoneNumberFormat.E164)
 
     def clean_clinic_code(self):
@@ -78,14 +80,3 @@ class RegistrationDetailsForm(forms.Form):
         if not code.isdigit():
             raise forms.ValidationError(self.CLINIC_CODE_ERROR_MESSAGE)
         return code
-
-    def contact_exists(self, msisdn):
-        client = TembaClient(settings.RAPIDPRO_URL, settings.RAPIDPRO_TOKEN)
-        contact = client.get_contacts(urn='tel:%s' % msisdn).first()
-        if contact:
-            for group in contact.groups:
-                if group.name in ['nurseconnect-sms', 'nurseconnect-whatsapp']:
-                    return True
-                if group.name in ['opted-out']:
-                    return False
-        return False
