@@ -4,8 +4,8 @@ from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from django.utils.html import format_html
 
-from registrations.validators import msisdn_validator
 from registrations.utils import contact_in_groups
+from registrations.validators import msisdn_validator
 
 
 class RegistrationDetailsForm(forms.Form):

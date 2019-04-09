@@ -4,8 +4,8 @@ from rest_framework import routers
 
 from registrations.api_views import ReferralLinkViewSet
 from registrations.views import (
-    RegistrationConfirmOptIn,
     RegistrationConfirmClinic,
+    RegistrationConfirmOptIn,
     RegistrationDetailsView,
     RegistrationSuccess,
     TermsAndConditionsView,

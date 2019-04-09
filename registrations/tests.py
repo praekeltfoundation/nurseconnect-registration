@@ -1,7 +1,8 @@
+from urllib.parse import urlencode
+
 import responses
 from django.test import TestCase
 from django.urls import reverse
-from urllib.parse import urlencode
 
 from registrations.forms import RegistrationDetailsForm
 from registrations.models import ReferralLink
