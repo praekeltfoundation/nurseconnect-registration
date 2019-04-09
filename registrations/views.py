@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
@@ -5,7 +7,6 @@ from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 from requests.exceptions import RequestException
 from wabclient.exceptions import AddressException
-import logging
 
 from registrations.forms import RegistrationDetailsForm
 from registrations.models import ReferralLink

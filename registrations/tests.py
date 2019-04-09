@@ -1,8 +1,9 @@
+from unittest import mock
+
+import responses
 from django.contrib.messages import get_messages
 from django.test import TestCase
 from django.urls import reverse
-from unittest import mock
-import responses
 
 from registrations.forms import RegistrationDetailsForm
 from registrations.models import ReferralLink

@@ -1,5 +1,5 @@
-from django.conf import settings
 import phonenumbers
+from django.conf import settings
 from wabclient import Client as WABClient
 
 
