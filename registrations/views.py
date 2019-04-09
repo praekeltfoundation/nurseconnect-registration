@@ -28,7 +28,7 @@ class RegistrationDetailsView(FormView):
         # TODO: Replace with result of clinic code check
         self.request.session["clinic_name"] = "Test clinic"
 
-        if contact_in_groups(form.cleaned_data['msisdn'], ['opted-out']):
+        if contact_in_groups(form.cleaned_data["msisdn"], ["opted-out"]):
             return redirect(reverse_lazy("registrations:confirm-optin"))
         return super().form_valid(form)
 
@@ -42,8 +42,10 @@ class RegistrationConfirmOptIn(TemplateView):
     template_name = "registrations/confirm_optin.html"
 
     def dispatch(self, request, *args, **kwargs):
-        if "registration_details" not in request.session or 'msisdn' not in \
-                request.session.get('registration_details', {}):
+        if (
+            "registration_details" not in request.session
+            or "msisdn" not in request.session.get("registration_details", {})
+        ):
             return redirect(reverse_lazy("registrations:registration-details"))
         return super().dispatch(request, *args, **kwargs)
 

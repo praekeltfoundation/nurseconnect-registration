@@ -43,10 +43,13 @@ class RegistrationDetailsTest(TestCase):
         """
         The phone number field should be validated, and returned in E164 format
         """
-        responses.add(responses.GET,
-                      'https://test.rapidpro/api/v2/contacts.json',
-                      json={"next": None, "previous": None, "results": []}, status=200,
-                      headers={'Authorization': 'Token some_token'})
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json",
+            json={"next": None, "previous": None, "results": []},
+            status=200,
+            headers={"Authorization": "Token some_token"},
+        )
 
         form = RegistrationDetailsForm({"msisdn": "0820001001"})
         form.is_valid()
@@ -74,11 +77,14 @@ class RegistrationDetailsTest(TestCase):
         If a contact exists in Rapidpro for this number, then we should return
         an error message
         """
-        responses.add(responses.GET,
-                      'https://test.rapidpro/api/v2/contacts.json?' + urlencode(
-                        {'urn': 'tel:+27820001001'}),
-                      json={"next": None, "previous": None, "results": []}, status=200,
-                      headers={'Authorization': 'Token some_token'})
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json?"
+            + urlencode({"urn": "tel:+27820001001"}),
+            json={"next": None, "previous": None, "results": []},
+            status=200,
+            headers={"Authorization": "Token some_token"},
+        )
 
         form = RegistrationDetailsForm({"msisdn": "+27820001001"})
         form.is_valid()
@@ -87,26 +93,35 @@ class RegistrationDetailsTest(TestCase):
         contact_data = {
             "next": None,
             "previous": None,
-            "results": [{
-                "uuid": "09d23a05-47fe-11e4-bfe9-b8f6b119e9ab",
-                "name": "Ben Haggerty",
-                "language": None,
-                "urns": ["tel:+27820001002"],
-                "groups": [{"name": "nurseconnect-sms",
-                            "uuid": "5a4eb79e-1b1f-4ae3-8700-09384cca385f"}],
-                "fields": {},
-                "blocked": None,
-                "stopped": None,
-                "created_on": "2015-11-11T13:05:57.457742Z",
-                "modified_on": "2015-11-11T13:05:57.576056Z"
-            }]
+            "results": [
+                {
+                    "uuid": "09d23a05-47fe-11e4-bfe9-b8f6b119e9ab",
+                    "name": "Ben Haggerty",
+                    "language": None,
+                    "urns": ["tel:+27820001002"],
+                    "groups": [
+                        {
+                            "name": "nurseconnect-sms",
+                            "uuid": "5a4eb79e-1b1f-4ae3-8700-09384cca385f",
+                        }
+                    ],
+                    "fields": {},
+                    "blocked": None,
+                    "stopped": None,
+                    "created_on": "2015-11-11T13:05:57.457742Z",
+                    "modified_on": "2015-11-11T13:05:57.576056Z",
+                }
+            ],
         }
 
-        responses.add(responses.GET,
-                      'https://test.rapidpro/api/v2/contacts.json?' + urlencode(
-                        {'urn': 'tel:+27820001002'}),
-                      json=contact_data, status=200,
-                      headers={'Authorization': 'Token some_token'})
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json?"
+            + urlencode({"urn": "tel:+27820001002"}),
+            json=contact_data,
+            status=200,
+            headers={"Authorization": "Token some_token"},
+        )
 
         form = RegistrationDetailsForm({"msisdn": "+27820001002"})
         form.is_valid()
@@ -121,32 +136,47 @@ class RegistrationDetailsTest(TestCase):
         contact_data = {
             "next": None,
             "previous": None,
-            "results": [{
-                "uuid": "09d23a05-47fe-11e4-bfe9-b8f6b119e9ab",
-                "name": "Ben Haggerty",
-                "language": None,
-                "urns": ["tel:+27820001003"],
-                "groups": [{"name": "opted-out",
-                            "uuid": "5a4eb79e-1b1f-4ae3-8700-09384cca385f"}],
-                "fields": {},
-                "blocked": None,
-                "stopped": None,
-                "created_on": "2015-11-11T13:05:57.457742Z",
-                "modified_on": "2015-11-11T13:05:57.576056Z"
-            }]
+            "results": [
+                {
+                    "uuid": "09d23a05-47fe-11e4-bfe9-b8f6b119e9ab",
+                    "name": "Ben Haggerty",
+                    "language": None,
+                    "urns": ["tel:+27820001003"],
+                    "groups": [
+                        {
+                            "name": "opted-out",
+                            "uuid": "5a4eb79e-1b1f-4ae3-8700-09384cca385f",
+                        }
+                    ],
+                    "fields": {},
+                    "blocked": None,
+                    "stopped": None,
+                    "created_on": "2015-11-11T13:05:57.457742Z",
+                    "modified_on": "2015-11-11T13:05:57.576056Z",
+                }
+            ],
         }
 
-        responses.add(responses.GET,
-                      'https://test.rapidpro/api/v2/contacts.json?' + urlencode(
-                        {'urn': 'tel:+27820001003'}),
-                      json=contact_data, status=200,
-                      headers={'Authorization': 'Token some_token'})
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json?"
+            + urlencode({"urn": "tel:+27820001003"}),
+            json=contact_data,
+            status=200,
+            headers={"Authorization": "Token some_token"},
+        )
 
         referral = ReferralLink.objects.create(msisdn="+27820001001")
         url = reverse("registrations:registration-details", args=[referral.code])
-        r = self.client.post(url, {
-            "msisdn": ["0820001003"], "clinic_code": ["123456"], "consent": ["True"],
-            "terms_and_conditions": ["True"]})
+        r = self.client.post(
+            url,
+            {
+                "msisdn": ["0820001003"],
+                "clinic_code": ["123456"],
+                "consent": ["True"],
+                "terms_and_conditions": ["True"],
+            },
+        )
         self.assertRedirects(r, reverse("registrations:confirm-optin"))
 
     def test_clinic_code_validation(self):
@@ -168,10 +198,13 @@ class RegistrationDetailsTest(TestCase):
         """
         Should put the form details and clinic name in the session
         """
-        responses.add(responses.GET,
-                      'https://test.rapidpro/api/v2/contacts.json',
-                      json={"next": None, "previous": None, "results": []}, status=200,
-                      headers={'Authorization': 'Token some_token'})
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json",
+            json={"next": None, "previous": None, "results": []},
+            status=200,
+            headers={"Authorization": "Token some_token"},
+        )
         r = self.client.post(
             reverse("registrations:registration-details"),
             {

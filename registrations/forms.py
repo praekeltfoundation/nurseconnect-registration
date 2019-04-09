@@ -69,11 +69,13 @@ class RegistrationDetailsForm(forms.Form):
     def clean_msisdn(self):
         msisdn = phonenumbers.parse(self.cleaned_data["msisdn"], "ZA")
         formatted_msisdn = phonenumbers.format_number(
-            msisdn, phonenumbers.PhoneNumberFormat.E164)
+            msisdn, phonenumbers.PhoneNumberFormat.E164
+        )
 
         # Check if number already registered
-        if contact_in_groups(formatted_msisdn,
-                             ['nurseconnect-sms', 'nurseconnect-whatsapp']):
+        if contact_in_groups(
+            formatted_msisdn, ["nurseconnect-sms", "nurseconnect-whatsapp"]
+        ):
             raise forms.ValidationError(self.EXISTING_NUMBER_ERROR_MESSAGE)
         return formatted_msisdn
 

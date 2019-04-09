@@ -8,8 +8,8 @@ RAPIDPRO_URL = "https://test.rapidpro"
 RAPIDPRO_TOKEN = "some_token"
 
 CACHES = {
-    'contacts': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'contacts',
+    "contacts": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "contacts",
     }
 }

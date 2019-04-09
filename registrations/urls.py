@@ -20,7 +20,7 @@ urlpatterns = [
     path(
         "reject_optin",
         TemplateView.as_view(template_name="registrations/reject_optin.html"),
-        name="reject-optin"
+        name="reject-optin",
     ),
     path("confirm_clinic", RegistrationConfirmClinic.as_view(), name="confirm-clinic"),
     path("success", RegistrationSuccess.as_view(), name="success"),
