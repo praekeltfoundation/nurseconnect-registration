@@ -20,6 +20,7 @@ setup(
         "djangorestframework==3.9.2",
         "coreapi==2.3.3",
         "rapidpro-python==2.1.8",
+        "django_redis",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
