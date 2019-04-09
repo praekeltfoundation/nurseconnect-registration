@@ -15,7 +15,7 @@ class RegistrationDetailsForm(forms.Form):
     )
     EXISTING_NUMBER_ERROR_MESSAGE = (
         "Sorry, but this phone number is already registered. Please enter a new "
-        "cellphone number again"
+        "cellphone number."
     )
     CLINIC_CODE_ERROR_MESSAGE = (
         "Sorry we don't recognise that code. Please enter the 6-digit facility code "
@@ -68,12 +68,16 @@ class RegistrationDetailsForm(forms.Form):
 
     def clean_msisdn(self):
         msisdn = phonenumbers.parse(self.cleaned_data["msisdn"], "ZA")
-        contact = get_contact(self.cleaned_data["msisdn"])
+        formatted_msisdn = phonenumbers.format_number(
+            msisdn, phonenumbers.PhoneNumberFormat.E164)
+
+        # Check if number already registered
+        contact = get_contact(formatted_msisdn)
         if contact:
             for group in contact.groups:
                 if group.name in ['nurseconnect-sms', 'nurseconnect-whatsapp']:
                     raise forms.ValidationError(self.EXISTING_NUMBER_ERROR_MESSAGE)
-        return phonenumbers.format_number(msisdn, phonenumbers.PhoneNumberFormat.E164)
+        return formatted_msisdn
 
     def clean_clinic_code(self):
         code = self.cleaned_data["clinic_code"]
