@@ -112,6 +112,44 @@ class RegistrationDetailsTest(TestCase):
         form.is_valid()
         self.assertIn("msisdn", form.errors)
 
+    @responses.activate
+    def test_opted_out_contact_redirected_to_confirmation(self):
+        """
+        If a contact has already opted out, then we should redirect to an optin
+        confirmation page
+        """
+        contact_data = {
+            "next": None,
+            "previous": None,
+            "results": [{
+                "uuid": "09d23a05-47fe-11e4-bfe9-b8f6b119e9ab",
+                "name": "Ben Haggerty",
+                "language": None,
+                "urns": ["tel:+27820001003"],
+                "groups": [{"name": "opted-out",
+                            "uuid": "5a4eb79e-1b1f-4ae3-8700-09384cca385f"}],
+                "fields": {},
+                "blocked": None,
+                "stopped": None,
+                "created_on": "2015-11-11T13:05:57.457742Z",
+                "modified_on": "2015-11-11T13:05:57.576056Z"
+            }]
+        }
+
+        responses.add(responses.GET,
+                      'https://test.rapidpro/api/v2/contacts.json?' + urlencode(
+                        {'urn': 'tel:+27820001003'}),
+                      json=contact_data, status=200,
+                      headers={'Authorization': 'Token some_token'})
+
+        referral = ReferralLink.objects.create(msisdn="+27820001001")
+        url = reverse("registrations:registration-details", args=[referral.code])
+        r = self.client.post(url, {
+            "msisdn": ["0820001003"], "clinic_code": ["123456"], "consent": ["True"],
+            "terms_and_conditions": ["True"]})
+        print(r.content)
+        self.assertRedirects(r, reverse("registrations:confirm-optin"))
+
     def test_clinic_code_validation(self):
         """
         The clinic code should be digits
