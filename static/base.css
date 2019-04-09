@@ -121,3 +121,15 @@ button {
 .referral {
     width: 100%;
 }
+
+.messages li {
+    padding: 1em;
+    font-weight: 600;
+    font-size: 1.2em;
+    text-align: center;
+}
+
+.error {
+    background-color: #d00000;
+    color: #fff;
+}

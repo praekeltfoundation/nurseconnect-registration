@@ -1,10 +1,15 @@
+from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
+from requests.exceptions import RequestException
+from wabclient.exceptions import AddressException
+import logging
 
 from registrations.forms import RegistrationDetailsForm
 from registrations.models import ReferralLink
+from registrations.utils import wabclient
 
 
 class RegistrationDetailsView(FormView):
@@ -47,13 +52,46 @@ class RegistrationConfirmClinic(TemplateView):
         context["clinic_name"] = self.request.session["clinic_name"]
         return context
 
+    def get_channel(self, msisdn):
+        """
+        Returns "WhatsApp" or "SMS" depending on whether the MSISDN is
+        whatsappable.
+
+        Args:
+            msisdn (str): The MSISDN to query
+        """
+        try:
+            wabclient.get_address(msisdn)
+            return "WhatsApp"
+        except AddressException:
+            return "SMS"
+
     def post(self, request, *args, **kwargs):
-        if "yes" in request.POST:
-            # TODO: WhatsApp check
-            # TODO: Create registration
-            request.session["channel"] = "WhatsApp"
-            return redirect(reverse_lazy("registrations:success"))
-        return redirect(reverse_lazy("registrations:registration-details"))
+        if "yes" not in request.POST:
+            return redirect(reverse_lazy("registrations:registration-details"))
+
+        # TODO: Create registration
+
+        try:
+            request.session["channel"] = self.get_channel(
+                request.session["registration_details"]["msisdn"]
+            )
+        except RequestException:
+            # Ensure that we know of repeating errors
+            try:
+                request.session["whatsapp_api_errors"] += 1
+            except KeyError:
+                request.session["whatsapp_api_errors"] = 1
+            if request.session.get("whatsapp_api_errors", 0) >= 3:
+                logging.exception("WhatsApp API error limit reached")
+
+            messages.error(
+                request,
+                "There was an error creating your registration. Please try again.",
+            )
+            return redirect(reverse_lazy("registrations:confirm-clinic"))
+
+        return redirect(reverse_lazy("registrations:success"))
 
 
 class RegistrationSuccess(TemplateView):
