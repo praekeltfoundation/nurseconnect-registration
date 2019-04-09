@@ -22,3 +22,12 @@ def get_contact(msisdn):
         CACHE.set(msisdn, contact, CACHE_EXPIRY_SECONDS)
 
     return contact
+
+
+def contact_in_groups(msisdn, groups):
+    contact = get_contact(msisdn)
+    if contact:
+        for group in contact.groups:
+            if group.name in groups:
+                return True
+    return False

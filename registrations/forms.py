@@ -5,7 +5,7 @@ from django.utils.functional import lazy
 from django.utils.html import format_html
 
 from registrations.validators import msisdn_validator
-from registrations.utils import get_contact
+from registrations.utils import contact_in_groups
 
 
 class RegistrationDetailsForm(forms.Form):
@@ -72,11 +72,9 @@ class RegistrationDetailsForm(forms.Form):
             msisdn, phonenumbers.PhoneNumberFormat.E164)
 
         # Check if number already registered
-        contact = get_contact(formatted_msisdn)
-        if contact:
-            for group in contact.groups:
-                if group.name in ['nurseconnect-sms', 'nurseconnect-whatsapp']:
-                    raise forms.ValidationError(self.EXISTING_NUMBER_ERROR_MESSAGE)
+        if contact_in_groups(formatted_msisdn,
+                             ['nurseconnect-sms', 'nurseconnect-whatsapp']):
+            raise forms.ValidationError(self.EXISTING_NUMBER_ERROR_MESSAGE)
         return formatted_msisdn
 
     def clean_clinic_code(self):
