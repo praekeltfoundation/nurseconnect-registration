@@ -157,6 +157,38 @@ class RegistrationDetailsTest(TestCase):
         self.assertEqual(self.client.session["clinic_name"], "Test clinic")
 
 
+class OptinConfirmTests(TestCase):
+    def test_redirect_on_invalid_session(self):
+        """
+        If there isn't a msisdn in the session, then we should redirect to the
+        registration details page, as the user went to this page without first going
+        through the registration details page.
+        """
+        r = self.client.get(reverse("registrations:confirm-optin"))
+        self.assertRedirects(r, reverse("registrations:registration-details"))
+
+    def test_goes_to_clinic_confirm_on_yes(self):
+        """
+        If "yes" is selected, we should redirect to the clinic confirmation page
+        """
+        session = self.client.session
+        session["registration_details"] = {"msisdn": "+27820001001"}
+        session["clinic_name"] = "Test clinic"
+        session.save()
+        r = self.client.post(reverse("registrations:confirm-optin"), {"yes": ["Yes"]})
+        self.assertRedirects(r, reverse("registrations:confirm-clinic"))
+
+    def test_goes_to_farewell_page_on_no(self):
+        """
+        If "no" is selected, we should redirect to a farewell page
+        """
+        session = self.client.session
+        session["registration_details"] = {"msisdn": "+27820001001"}
+        session.save()
+        r = self.client.post(reverse("registrations:confirm-optin"), {"no": ["No"]})
+        self.assertRedirects(r, reverse("registrations:reject-optin"))
+
+
 class ClinicConfirmTests(TestCase):
     def test_redirect_on_invalid_session(self):
         """
