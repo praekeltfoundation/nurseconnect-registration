@@ -147,7 +147,6 @@ class RegistrationDetailsTest(TestCase):
         r = self.client.post(url, {
             "msisdn": ["0820001003"], "clinic_code": ["123456"], "consent": ["True"],
             "terms_and_conditions": ["True"]})
-        print(r.content)
         self.assertRedirects(r, reverse("registrations:confirm-optin"))
 
     def test_clinic_code_validation(self):
