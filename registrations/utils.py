@@ -1,6 +1,7 @@
 import phonenumbers
 from django.conf import settings
 from temba_client.v2 import TembaClient
+from wabclient import Client as WABClient
 
 
 def normalise_msisdn(msisdn):
@@ -24,3 +25,7 @@ def contact_in_rapidpro_groups(contact, groups):
 
 
 tembaclient = TembaClient(settings.RAPIDPRO_URL, settings.RAPIDPRO_TOKEN)
+
+# Short timeout since we're making these requests in the HTTP request
+wabclient = WABClient(url=settings.WHATSAPP_URL, timeout=2)
+wabclient.connection.set_token(settings.WHATSAPP_TOKEN)
