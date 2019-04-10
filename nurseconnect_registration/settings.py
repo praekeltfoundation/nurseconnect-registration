@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "watchman",
     "rest_framework",
     "rest_framework.authtoken",
+    "django_celery_results",
 ]
 
 MIDDLEWARE = [
@@ -143,3 +144,6 @@ REST_FRAMEWORK = {
 
 WHATSAPP_URL = env("WHATSAPP_URL", str, "https://whatsapp.praekelt.org")
 WHATSAPP_TOKEN = env("WHATSAPP_TOKEN", str, "REPLACEME")
+
+CELERY_RESULT_BACKEND = "django-db"
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", str, "amqp://")
