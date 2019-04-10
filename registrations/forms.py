@@ -3,10 +3,10 @@ from django import forms
 from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from django.utils.html import format_html
+from temba_client.exceptions import TembaException
 
 from registrations.utils import contact_in_rapidpro_groups, get_rapidpro_contact
 from registrations.validators import msisdn_validator
-from temba_client.exceptions import TembaException
 
 
 class RegistrationDetailsForm(forms.Form):

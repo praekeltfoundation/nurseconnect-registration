@@ -2,10 +2,9 @@ import logging
 
 import phonenumbers
 from django.conf import settings
-from wabclient import Client as WABClient
-
 from temba_client.exceptions import TembaException
 from temba_client.v2 import TembaClient
+from wabclient import Client as WABClient
 
 
 def normalise_msisdn(msisdn):
