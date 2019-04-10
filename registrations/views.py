@@ -5,12 +5,16 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
+from prometheus_client import Counter
 from requests.exceptions import RequestException
 from wabclient.exceptions import AddressException
 
 from registrations.forms import RegistrationDetailsForm
 from registrations.models import ReferralLink
 from registrations.utils import wabclient
+
+
+WHATSAPP_API_FAILURES = Counter("whatsapp_api_failures", "WhatsApp API failures")
 
 
 class RegistrationDetailsView(FormView):
@@ -78,6 +82,8 @@ class RegistrationConfirmClinic(TemplateView):
                 request.session["registration_details"]["msisdn"]
             )
         except RequestException:
+            WHATSAPP_API_FAILURES.inc()
+
             # Ensure that we know of repeating errors
             try:
                 request.session["whatsapp_api_errors"] += 1
