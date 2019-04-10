@@ -92,6 +92,8 @@ class RegistrationDetailsTest(TestCase):
         form = RegistrationDetailsForm({"msisdn": "0820001001"}, request=r.wsgi_request)
         form.is_valid()
         self.assertNotIn("msisdn", form.errors)
+        self.assertIn("contact", r.wsgi_request.session)
+        self.assertIsNone(r.wsgi_request.session["contact"])
 
         contact_data = {
             "next": None,
@@ -129,6 +131,8 @@ class RegistrationDetailsTest(TestCase):
         form = RegistrationDetailsForm({"msisdn": "0820001002"}, request=r.wsgi_request)
         form.is_valid()
         self.assertIn("msisdn", form.errors)
+        self.assertIn("contact", r.wsgi_request.session)
+        self.assertIsNotNone(r.wsgi_request.session["contact"])
 
     @responses.activate
     def test_opted_out_contact_redirected_to_confirmation(self):
