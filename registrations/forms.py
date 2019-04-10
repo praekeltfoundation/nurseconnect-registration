@@ -3,6 +3,7 @@ from django import forms
 from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from django.utils.html import format_html
+from temba_client.exceptions import TembaException
 
 from registrations.utils import contact_in_rapidpro_groups, get_rapidpro_contact
 from registrations.validators import msisdn_validator
@@ -77,7 +78,12 @@ class RegistrationDetailsForm(forms.Form):
         )
 
         # Check if number already registered
-        contact = get_rapidpro_contact(formatted_msisdn)
+        try:
+            contact = get_rapidpro_contact(formatted_msisdn)
+        except TembaException:
+            raise forms.ValidationError(
+                "There was an error checking your details. Please try again."
+            )
         self.request.session["contact"] = contact
         if contact_in_rapidpro_groups(
             contact, ["nurseconnect-sms", "nurseconnect-whatsapp"]
