@@ -4,7 +4,7 @@ from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from django.utils.html import format_html
 
-from registrations.utils import contact_in_groups
+from registrations.utils import get_contact, contact_in_groups
 from registrations.validators import msisdn_validator
 
 
@@ -77,9 +77,9 @@ class RegistrationDetailsForm(forms.Form):
         )
 
         # Check if number already registered
-        if contact_in_groups(
-            formatted_msisdn, ["nurseconnect-sms", "nurseconnect-whatsapp"]
-        ):
+        contact = get_contact(formatted_msisdn)
+        self.request.session["contact"] = contact
+        if contact_in_groups(contact, ["nurseconnect-sms", "nurseconnect-whatsapp"]):
             raise forms.ValidationError(self.EXISTING_NUMBER_ERROR_MESSAGE)
         return formatted_msisdn
 

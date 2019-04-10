@@ -13,19 +13,16 @@ def normalise_msisdn(msisdn):
 
 
 def get_contact(msisdn):
-    contact = CACHE.get(msisdn)
-    if not contact:
-        contact = tembaclient.get_contacts(urn="tel:%s" % msisdn).first()
-        CACHE.set(msisdn, contact, CACHE_EXPIRY_SECONDS)
-
-    return contact
-
-
-def contact_in_groups(msisdn, groups):
-    contact = get_contact(msisdn)
+    contact = tembaclient.get_contacts(urn="tel:%s" % msisdn).first()
     if contact:
-        for group in contact.groups:
-            if group.name in groups:
+        return contact.serialize()
+    return None
+
+
+def contact_in_groups(contact, groups):
+    if contact:
+        for group in contact.get("groups", []):
+            if group["name"] in groups:
                 return True
     return False
 

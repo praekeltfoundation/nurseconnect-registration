@@ -51,8 +51,9 @@ class RegistrationDetailsTest(TestCase):
             status=200,
             headers={"Authorization": "Token some_token"},
         )
+        r = self.client.get(reverse("registrations:registration-details"))
 
-        form = RegistrationDetailsForm({"msisdn": "0820001001"})
+        form = RegistrationDetailsForm({"msisdn": "0820001001"}, request=r.wsgi_request)
         form.is_valid()
         self.assertNotIn("msisdn", form.errors)
         self.assertEqual(form.clean_msisdn(), "+27820001001")
@@ -86,8 +87,9 @@ class RegistrationDetailsTest(TestCase):
             status=200,
             headers={"Authorization": "Token some_token"},
         )
+        r = self.client.get(reverse("registrations:registration-details"))
 
-        form = RegistrationDetailsForm({"msisdn": "+27820001001"})
+        form = RegistrationDetailsForm({"msisdn": "0820001001"}, request=r.wsgi_request)
         form.is_valid()
         self.assertNotIn("msisdn", form.errors)
 
@@ -124,7 +126,7 @@ class RegistrationDetailsTest(TestCase):
             headers={"Authorization": "Token some_token"},
         )
 
-        form = RegistrationDetailsForm({"msisdn": "+27820001002"})
+        form = RegistrationDetailsForm({"msisdn": "0820001002"}, request=r.wsgi_request)
         form.is_valid()
         self.assertIn("msisdn", form.errors)
 

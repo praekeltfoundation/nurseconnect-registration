@@ -33,7 +33,8 @@ class RegistrationDetailsView(FormView):
         # TODO: Replace with result of clinic code check
         self.request.session["clinic_name"] = "Test clinic"
 
-        if contact_in_groups(form.cleaned_data["msisdn"], ["opted-out"]):
+        contact = self.request.session["contact"]
+        if contact_in_groups(contact, ["opted-out"]):
             return redirect(reverse_lazy("registrations:confirm-optin"))
         return super().form_valid(form)
 
