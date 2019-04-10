@@ -66,6 +66,10 @@ class RegistrationDetailsForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
     )
 
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(RegistrationDetailsForm, self).__init__(*args, **kwargs)
+
     def clean_msisdn(self):
         msisdn = phonenumbers.parse(self.cleaned_data["msisdn"], "ZA")
         formatted_msisdn = phonenumbers.format_number(

@@ -23,6 +23,11 @@ class RegistrationDetailsView(FormView):
             pass
         return super().dispatch(request, *args, **kwargs)
 
+    def get_form_kwargs(self):
+        kwargs = super(RegistrationDetailsView, self).get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
     def form_valid(self, form):
         self.request.session["registration_details"] = form.cleaned_data
         # TODO: Replace with result of clinic code check
