@@ -1,12 +1,12 @@
-from celery.exceptions import SoftTimeLimitExceeded
-from django.conf import settings
 from datetime import datetime
 from urllib.parse import urljoin
-from requests.exceptions import RequestException
+
 import requests
+from celery.exceptions import SoftTimeLimitExceeded
+from django.conf import settings
+from requests.exceptions import RequestException
 
 from nurseconnect_registration.celery import app
-
 
 openhim_session = requests.Session()
 openhim_session.auth = settings.OPENHIM_AUTH

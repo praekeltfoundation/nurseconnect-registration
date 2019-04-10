@@ -4,13 +4,19 @@ from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from django.utils.html import format_html
 
+from registrations.utils import contact_in_rapidpro_groups, get_rapidpro_contact
 from registrations.validators import msisdn_validator
+from temba_client.exceptions import TembaException
 
 
 class RegistrationDetailsForm(forms.Form):
     PHONE_NUMBER_ERROR_MESSAGE = (
         "Sorry we don't recognise that number. Please enter the cellphone number "
         "again, eg. 0762564722"
+    )
+    EXISTING_NUMBER_ERROR_MESSAGE = (
+        "Sorry, but this phone number is already registered. Please enter a new "
+        "cellphone number."
     )
     CLINIC_CODE_ERROR_MESSAGE = (
         "Sorry we don't recognise that code. Please enter the 6-digit facility code "
@@ -61,9 +67,29 @@ class RegistrationDetailsForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
     )
 
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request", None)
+        super(RegistrationDetailsForm, self).__init__(*args, **kwargs)
+
     def clean_msisdn(self):
         msisdn = phonenumbers.parse(self.cleaned_data["msisdn"], "ZA")
-        return phonenumbers.format_number(msisdn, phonenumbers.PhoneNumberFormat.E164)
+        formatted_msisdn = phonenumbers.format_number(
+            msisdn, phonenumbers.PhoneNumberFormat.E164
+        )
+
+        # Check if number already registered
+        try:
+            contact = get_rapidpro_contact(formatted_msisdn)
+        except TembaException:
+            raise forms.ValidationError(
+                "There was an error checking your details. Please try again."
+            )
+        self.request.session["contact"] = contact
+        if contact_in_rapidpro_groups(
+            contact, ["nurseconnect-sms", "nurseconnect-whatsapp"]
+        ):
+            raise forms.ValidationError(self.EXISTING_NUMBER_ERROR_MESSAGE)
+        return formatted_msisdn
 
     def clean_clinic_code(self):
         code = self.cleaned_data["clinic_code"]

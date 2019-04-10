@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 from unittest import mock
+from urllib.parse import urlencode
 
 import responses
 from django.contrib.messages import get_messages
@@ -42,11 +43,21 @@ class RegistrationDetailsTest(TestCase):
         self.assertTemplateUsed(r, "registrations/registration_details.html")
         self.assertContains(r, '<form method="post">')
 
+    @responses.activate
     def test_msisdn_validation(self):
         """
         The phone number field should be validated, and returned in E164 format
         """
-        form = RegistrationDetailsForm({"msisdn": "0820001001"})
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json",
+            json={"next": None, "previous": None, "results": []},
+            status=200,
+            headers={"Authorization": "Token some_token"},
+        )
+        r = self.client.get(reverse("registrations:registration-details"))
+
+        form = RegistrationDetailsForm({"msisdn": "0820001001"}, request=r.wsgi_request)
         form.is_valid()
         self.assertNotIn("msisdn", form.errors)
         self.assertEqual(form.clean_msisdn(), "+27820001001")
@@ -66,6 +77,143 @@ class RegistrationDetailsTest(TestCase):
         form.is_valid()
         self.assertIn("msisdn", form.errors)
 
+    @responses.activate
+    def test_contact_exists(self):
+        """
+        If a contact exists in Rapidpro for this number, then we should return
+        an error message
+        """
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json?"
+            + urlencode({"urn": "tel:+27820001001"}),
+            json={"next": None, "previous": None, "results": []},
+            status=200,
+            headers={"Authorization": "Token some_token"},
+        )
+        r = self.client.get(reverse("registrations:registration-details"))
+
+        form = RegistrationDetailsForm({"msisdn": "0820001001"}, request=r.wsgi_request)
+        form.is_valid()
+        self.assertNotIn("msisdn", form.errors)
+        self.assertIn("contact", r.wsgi_request.session)
+        self.assertIsNone(r.wsgi_request.session["contact"])
+
+        contact_data = {
+            "next": None,
+            "previous": None,
+            "results": [
+                {
+                    "uuid": "09d23a05-47fe-11e4-bfe9-b8f6b119e9ab",
+                    "name": "Ben Haggerty",
+                    "language": None,
+                    "urns": ["tel:+27820001002"],
+                    "groups": [
+                        {
+                            "name": "nurseconnect-sms",
+                            "uuid": "5a4eb79e-1b1f-4ae3-8700-09384cca385f",
+                        }
+                    ],
+                    "fields": {},
+                    "blocked": None,
+                    "stopped": None,
+                    "created_on": "2015-11-11T13:05:57.457742Z",
+                    "modified_on": "2015-11-11T13:05:57.576056Z",
+                }
+            ],
+        }
+
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json?"
+            + urlencode({"urn": "tel:+27820001002"}),
+            json=contact_data,
+            status=200,
+            headers={"Authorization": "Token some_token"},
+        )
+
+        form = RegistrationDetailsForm({"msisdn": "0820001002"}, request=r.wsgi_request)
+        form.is_valid()
+        self.assertIn("msisdn", form.errors)
+        self.assertIn("contact", r.wsgi_request.session)
+        self.assertIsNotNone(r.wsgi_request.session["contact"])
+
+    @responses.activate
+    def test_get_rp_contact_error(self):
+        """
+        If there's an error making the HTTP request, an error message should be returned
+        to the user, asking them to try again.
+        """
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json?"
+            + urlencode({"urn": "tel:+27820001002"}),
+            status=500,
+        )
+
+        form = RegistrationDetailsForm({"msisdn": "0820001002"})
+        with self.assertLogs(level="ERROR") as logs:
+            form.is_valid()
+        [error_log] = logs.output
+        self.assertIn("Error connecting to RapidPro", error_log)
+        self.assertIn("msisdn", form.errors)
+        self.assertIn(
+            "There was an error checking your details. Please try again.",
+            form.errors["msisdn"],
+        )
+
+    @responses.activate
+    def test_opted_out_contact_redirected_to_confirmation(self):
+        """
+        If a contact has already opted out, then we should redirect to an optin
+        confirmation page
+        """
+        contact_data = {
+            "next": None,
+            "previous": None,
+            "results": [
+                {
+                    "uuid": "09d23a05-47fe-11e4-bfe9-b8f6b119e9ab",
+                    "name": "Ben Haggerty",
+                    "language": None,
+                    "urns": ["tel:+27820001003"],
+                    "groups": [
+                        {
+                            "name": "opted-out",
+                            "uuid": "5a4eb79e-1b1f-4ae3-8700-09384cca385f",
+                        }
+                    ],
+                    "fields": {},
+                    "blocked": None,
+                    "stopped": None,
+                    "created_on": "2015-11-11T13:05:57.457742Z",
+                    "modified_on": "2015-11-11T13:05:57.576056Z",
+                }
+            ],
+        }
+
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json?"
+            + urlencode({"urn": "tel:+27820001003"}),
+            json=contact_data,
+            status=200,
+            headers={"Authorization": "Token some_token"},
+        )
+
+        referral = ReferralLink.objects.create(msisdn="+27820001001")
+        url = reverse("registrations:registration-details", args=[referral.code])
+        r = self.client.post(
+            url,
+            {
+                "msisdn": ["0820001003"],
+                "clinic_code": ["123456"],
+                "consent": ["True"],
+                "terms_and_conditions": ["True"],
+            },
+        )
+        self.assertRedirects(r, reverse("registrations:confirm-optin"))
+
     def test_clinic_code_validation(self):
         """
         The clinic code should be digits
@@ -80,10 +228,18 @@ class RegistrationDetailsTest(TestCase):
         form.is_valid()
         self.assertIn("clinic_code", form.errors)
 
+    @responses.activate
     def test_form_success(self):
         """
         Should put the form details and clinic name in the session
         """
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json",
+            json={"next": None, "previous": None, "results": []},
+            status=200,
+            headers={"Authorization": "Token some_token"},
+        )
         r = self.client.post(
             reverse("registrations:registration-details"),
             {
@@ -104,6 +260,38 @@ class RegistrationDetailsTest(TestCase):
             },
         )
         self.assertEqual(self.client.session["clinic_name"], "Test clinic")
+
+
+class OptinConfirmTests(TestCase):
+    def test_redirect_on_invalid_session(self):
+        """
+        If there isn't a msisdn in the session, then we should redirect to the
+        registration details page, as the user went to this page without first going
+        through the registration details page.
+        """
+        r = self.client.get(reverse("registrations:confirm-optin"))
+        self.assertRedirects(r, reverse("registrations:registration-details"))
+
+    def test_goes_to_clinic_confirm_on_yes(self):
+        """
+        If "yes" is selected, we should redirect to the clinic confirmation page
+        """
+        session = self.client.session
+        session["registration_details"] = {"msisdn": "+27820001001"}
+        session["clinic_name"] = "Test clinic"
+        session.save()
+        r = self.client.post(reverse("registrations:confirm-optin"), {"yes": ["Yes"]})
+        self.assertRedirects(r, reverse("registrations:confirm-clinic"))
+
+    def test_goes_to_farewell_page_on_no(self):
+        """
+        If "no" is selected, we should redirect to a farewell page
+        """
+        session = self.client.session
+        session["registration_details"] = {"msisdn": "+27820001001"}
+        session.save()
+        r = self.client.post(reverse("registrations:confirm-optin"), {"no": ["No"]})
+        self.assertRedirects(r, reverse("registrations:reject-optin"))
 
 
 class ClinicConfirmTests(TestCase):

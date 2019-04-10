@@ -1,5 +1,5 @@
-from datetime import datetime
 import logging
+from datetime import datetime
 
 from django.contrib import messages
 from django.shortcuts import redirect
@@ -13,7 +13,7 @@ from wabclient.exceptions import AddressException
 from registrations.forms import RegistrationDetailsForm
 from registrations.models import ReferralLink
 from registrations.tasks import send_registration_to_openhim
-from registrations.utils import wabclient
+from registrations.utils import contact_in_rapidpro_groups, wabclient
 
 WHATSAPP_API_FAILURES = Counter("whatsapp_api_failures", "WhatsApp API failures")
 
@@ -33,16 +33,42 @@ class RegistrationDetailsView(FormView):
             pass
         return super().dispatch(request, *args, **kwargs)
 
+    def get_form_kwargs(self):
+        kwargs = super(RegistrationDetailsView, self).get_form_kwargs()
+        kwargs["request"] = self.request
+        return kwargs
+
     def form_valid(self, form):
         self.request.session["registration_details"] = form.cleaned_data
         # TODO: Replace with result of clinic code check
         self.request.session["clinic_name"] = "Test clinic"
+
+        contact = self.request.session["contact"]
+        if contact_in_rapidpro_groups(contact, ["opted-out"]):
+            return redirect(reverse_lazy("registrations:confirm-optin"))
         return super().form_valid(form)
 
     def get_initial(self):
         if "registration_details" in self.request.session:
             return self.request.session["registration_details"]
         return super().get_initial()
+
+
+class RegistrationConfirmOptIn(TemplateView):
+    template_name = "registrations/confirm_optin.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        if (
+            "registration_details" not in request.session
+            or "msisdn" not in request.session.get("registration_details", {})
+        ):
+            return redirect(reverse_lazy("registrations:registration-details"))
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if "yes" in request.POST:
+            return redirect(reverse_lazy("registrations:confirm-clinic"))
+        return redirect(reverse_lazy("registrations:reject-optin"))
 
 
 class RegistrationConfirmClinic(TemplateView):
