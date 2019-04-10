@@ -15,8 +15,7 @@ def normalise_msisdn(msisdn):
 def get_contact(msisdn):
     contact = CACHE.get(msisdn)
     if not contact:
-        client = TembaClient(settings.RAPIDPRO_URL, settings.RAPIDPRO_TOKEN)
-        contact = client.get_contacts(urn="tel:%s" % msisdn).first()
+        contact = tembaclient.get_contacts(urn="tel:%s" % msisdn).first()
         CACHE.set(msisdn, contact, CACHE_EXPIRY_SECONDS)
 
     return contact
@@ -29,3 +28,6 @@ def contact_in_groups(msisdn, groups):
             if group.name in groups:
                 return True
     return False
+
+
+tembaclient = TembaClient(settings.RAPIDPRO_URL, settings.RAPIDPRO_TOKEN)
