@@ -8,14 +8,14 @@ def normalise_msisdn(msisdn):
     return phonenumbers.format_number(msisdn, phonenumbers.PhoneNumberFormat.E164)
 
 
-def get_contact(msisdn):
+def get_rapidpro_contact(msisdn):
     contact = tembaclient.get_contacts(urn="tel:%s" % msisdn).first()
     if contact:
         return contact.serialize()
     return None
 
 
-def contact_in_groups(contact, groups):
+def contact_in_rapidpro_groups(contact, groups):
     if contact:
         for group in contact.get("groups", []):
             if group["name"] in groups:

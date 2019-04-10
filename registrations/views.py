@@ -5,7 +5,7 @@ from django.views.generic.edit import FormView
 
 from registrations.forms import RegistrationDetailsForm
 from registrations.models import ReferralLink
-from registrations.utils import contact_in_groups
+from registrations.utils import contact_in_rapidpro_groups
 
 
 class RegistrationDetailsView(FormView):
@@ -34,7 +34,7 @@ class RegistrationDetailsView(FormView):
         self.request.session["clinic_name"] = "Test clinic"
 
         contact = self.request.session["contact"]
-        if contact_in_groups(contact, ["opted-out"]):
+        if contact_in_rapidpro_groups(contact, ["opted-out"]):
             return redirect(reverse_lazy("registrations:confirm-optin"))
         return super().form_valid(form)
 
