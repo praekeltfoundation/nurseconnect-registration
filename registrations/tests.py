@@ -1,3 +1,7 @@
+from unittest import mock
+
+import responses
+from django.contrib.messages import get_messages
 from django.test import TestCase
 from django.urls import reverse
 
@@ -110,10 +114,12 @@ class ClinicConfirmTests(TestCase):
         r = self.client.get(reverse("registrations:confirm-clinic"))
         self.assertRedirects(r, reverse("registrations:registration-details"))
 
-    def test_goes_to_end_on_yes(self):
+    @mock.patch("registrations.views.RegistrationConfirmClinic.get_channel")
+    def test_goes_to_end_on_yes(self, get_channel):
         """
         If "yes" is selected, we should set the channel and redirect to the success page
         """
+        get_channel.return_value = "WhatsApp"
         session = self.client.session
         session["clinic_name"] = "Test clinic"
         session["registration_details"] = {"msisdn": "+27820001001"}
@@ -131,6 +137,86 @@ class ClinicConfirmTests(TestCase):
         session.save()
         r = self.client.post(reverse("registrations:confirm-clinic"), {"no": ["No"]})
         self.assertRedirects(r, reverse("registrations:registration-details"))
+
+    @responses.activate
+    def test_get_channel_whatsapp(self):
+        """
+        If the user has a whatsapp account, the channel should be whatsapp
+        """
+        responses.add(
+            responses.POST,
+            "https://whatsapp.praekelt.org/v1/contacts",
+            json={
+                "contacts": [
+                    {"input": "+27820001001", "status": "valid", "wa_id": "27820001001"}
+                ]
+            },
+        )
+        session = self.client.session
+        session["clinic_name"] = "Test clinic"
+        session["registration_details"] = {"msisdn": "+27820001001"}
+        session.save()
+        r = self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
+        self.assertEqual(self.client.session["channel"], "WhatsApp")
+        self.assertRedirects(r, reverse("registrations:success"))
+
+    @responses.activate
+    def test_get_channel_sms(self):
+        """
+        If the user doesn't have a whatsapp account, the channel should be sms
+        """
+        responses.add(
+            responses.POST,
+            "https://whatsapp.praekelt.org/v1/contacts",
+            json={"contacts": [{"input": "+27820001001", "status": "invalid"}]},
+        )
+        session = self.client.session
+        session["clinic_name"] = "Test clinic"
+        session["registration_details"] = {"msisdn": "+27820001001"}
+        session.save()
+        r = self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
+        self.assertEqual(self.client.session["channel"], "SMS")
+        self.assertRedirects(r, reverse("registrations:success"))
+
+    @responses.activate
+    def test_get_channel_error(self):
+        """
+        If there's an error making the HTTP request, an error message should be returned
+        to the user, asking them to try again.
+        """
+        responses.add(
+            responses.POST, "https://whatsapp.praekelt.org/v1/contacts", status=500
+        )
+        session = self.client.session
+        session["clinic_name"] = "Test clinic"
+        session["registration_details"] = {"msisdn": "+27820001001"}
+        session.save()
+        r = self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
+        [message] = get_messages(r.wsgi_request)
+        self.assertEqual(
+            str(message),
+            "There was an error creating your registration. Please try again.",
+        )
+
+    @responses.activate
+    def test_get_channel_multiple_errors(self):
+        """
+        If there are multiple HTTP errors, then it should be logged so that we know
+        about it
+        """
+        responses.add(
+            responses.POST, "https://whatsapp.praekelt.org/v1/contacts", status=500
+        )
+        session = self.client.session
+        session["clinic_name"] = "Test clinic"
+        session["registration_details"] = {"msisdn": "+27820001001"}
+        session.save()
+        with self.assertLogs(level="ERROR") as logs:
+            self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
+            self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
+            self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
+        [error_log] = logs.output
+        self.assertIn("WhatsApp API error limit reached", error_log)
 
 
 class RegistrationSuccessTests(TestCase):

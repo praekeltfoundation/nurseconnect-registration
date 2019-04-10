@@ -140,3 +140,6 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
     ),
 }
+
+WHATSAPP_URL = env("WHATSAPP_URL", str, "https://whatsapp.praekelt.org")
+WHATSAPP_TOKEN = env("WHATSAPP_TOKEN", str, "REPLACEME")

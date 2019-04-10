@@ -19,6 +19,9 @@ setup(
         "hashids==1.2.0",
         "djangorestframework==3.9.2",
         "coreapi==2.3.3",
+        "wabclient==2.2.1",
+        # wabclient depends on six, but doesn't specify it in dependancies
+        "six==1.12.0",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
