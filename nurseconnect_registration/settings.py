@@ -141,6 +141,9 @@ REST_FRAMEWORK = {
     ),
 }
 
+RAPIDPRO_URL = env("RAPIDPRO_URL", str, "REPLACEME")
+RAPIDPRO_TOKEN = env("RAPIDPRO_TOKEN", str, "REPLACEME")
+
 WHATSAPP_URL = env("WHATSAPP_URL", str, "https://whatsapp.praekelt.org")
 WHATSAPP_TOKEN = env("WHATSAPP_TOKEN", str, "REPLACEME")
 
