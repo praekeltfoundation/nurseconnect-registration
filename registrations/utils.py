@@ -1,10 +1,6 @@
 import phonenumbers
 from django.conf import settings
-from django.core.cache import caches
 from temba_client.v2 import TembaClient
-
-CACHE = caches["contacts"]
-CACHE_EXPIRY_SECONDS = 600
 
 
 def normalise_msisdn(msisdn):

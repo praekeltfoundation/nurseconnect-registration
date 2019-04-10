@@ -143,20 +143,3 @@ REST_FRAMEWORK = {
 
 RAPIDPRO_URL = env("RAPIDPRO_URL", str, "REPLACEME")
 RAPIDPRO_TOKEN = env("RAPIDPRO_TOKEN", str, "REPLACEME")
-
-REDIS_HOST = os.environ.get("REDIS_HOST") or "localhost"
-REDIS_PORT = os.environ.get("REDIS_PORT") or 6379
-
-# we use a redis db of 10 for testing so that we maintain caches for dev
-REDIS_DB = 10 if DEBUG else os.environ.get("REDIS_DB")
-
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://%s:%s/%s" % (REDIS_HOST, REDIS_PORT, REDIS_DB),
-    },
-    "contacts": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://%s:%s/%s" % (REDIS_HOST, REDIS_PORT, REDIS_DB),
-    },
-}
