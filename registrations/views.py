@@ -13,7 +13,6 @@ from registrations.forms import RegistrationDetailsForm
 from registrations.models import ReferralLink
 from registrations.utils import wabclient
 
-
 WHATSAPP_API_FAILURES = Counter("whatsapp_api_failures", "WhatsApp API failures")
 
 
