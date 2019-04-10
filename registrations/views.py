@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from django.contrib import messages
 from django.shortcuts import redirect
@@ -11,6 +12,7 @@ from wabclient.exceptions import AddressException
 
 from registrations.forms import RegistrationDetailsForm
 from registrations.models import ReferralLink
+from registrations.tasks import send_registration_to_openhim
 from registrations.utils import contact_in_rapidpro_groups, wabclient
 
 WHATSAPP_API_FAILURES = Counter("whatsapp_api_failures", "WhatsApp API failures")
@@ -102,8 +104,10 @@ class RegistrationConfirmClinic(TemplateView):
 
         # TODO: Create registration
 
+        session = request.session
+
         try:
-            request.session["channel"] = self.get_channel(
+            session["channel"] = self.get_channel(
                 request.session["registration_details"]["msisdn"]
             )
         except RequestException:
@@ -111,10 +115,10 @@ class RegistrationConfirmClinic(TemplateView):
 
             # Ensure that we know of repeating errors
             try:
-                request.session["whatsapp_api_errors"] += 1
+                session["whatsapp_api_errors"] += 1
             except KeyError:
-                request.session["whatsapp_api_errors"] = 1
-            if request.session.get("whatsapp_api_errors", 0) >= 3:
+                session["whatsapp_api_errors"] = 1
+            if session.get("whatsapp_api_errors", 0) >= 3:
                 logging.exception("WhatsApp API error limit reached")
 
             messages.error(
@@ -122,6 +126,16 @@ class RegistrationConfirmClinic(TemplateView):
                 "There was an error creating your registration. Please try again.",
             )
             return redirect(reverse_lazy("registrations:confirm-clinic"))
+
+        send_registration_to_openhim.delay(
+            msisdn=session["registration_details"]["msisdn"],
+            referral_msisdn=session.get("registered_by"),
+            channel=session["channel"],
+            clinic_code=session["registration_details"]["clinic_code"],
+            persal=session.get("contact", {}).get("fields", {}).get("persal"),
+            sanc=session.get("contact", {}).get("fields", {}).get("sanc"),
+            timestamp=datetime.utcnow().timestamp(),
+        )
 
         return redirect(reverse_lazy("registrations:success"))
 
