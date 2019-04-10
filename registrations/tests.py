@@ -137,6 +137,30 @@ class RegistrationDetailsTest(TestCase):
         self.assertIsNotNone(r.wsgi_request.session["contact"])
 
     @responses.activate
+    def test_get_rp_contact_error(self):
+        """
+        If there's an error making the HTTP request, an error message should be returned
+        to the user, asking them to try again.
+        """
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json?"
+            + urlencode({"urn": "tel:+27820001002"}),
+            status=500,
+        )
+
+        form = RegistrationDetailsForm({"msisdn": "0820001002"})
+        with self.assertLogs(level="ERROR") as logs:
+            form.is_valid()
+        [error_log] = logs.output
+        self.assertIn("Error connecting to RapidPro", error_log)
+        self.assertIn("msisdn", form.errors)
+        self.assertIn(
+            "There was an error checking your details. Please try again.",
+            form.errors["msisdn"],
+        )
+
+    @responses.activate
     def test_opted_out_contact_redirected_to_confirmation(self):
         """
         If a contact has already opted out, then we should redirect to an optin

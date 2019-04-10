@@ -1,5 +1,8 @@
+import logging
+
 import phonenumbers
 from django.conf import settings
+from temba_client.exceptions import TembaException
 from temba_client.v2 import TembaClient
 from wabclient import Client as WABClient
 
@@ -10,7 +13,11 @@ def normalise_msisdn(msisdn):
 
 
 def get_rapidpro_contact(msisdn):
-    contact = tembaclient.get_contacts(urn="tel:%s" % msisdn).first()
+    try:
+        contact = tembaclient.get_contacts(urn="tel:%s" % msisdn).first()
+    except TembaException as e:
+        logging.exception("Error connecting to RapidPro (msisdn: %s)" % msisdn)
+        raise e
     if contact:
         return contact.serialize()
     return None
