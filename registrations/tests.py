@@ -1,5 +1,5 @@
-from urllib.parse import urlencode
 from unittest import mock
+from urllib.parse import urlencode
 
 import responses
 from django.contrib.messages import get_messages

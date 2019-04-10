@@ -4,7 +4,7 @@ from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from django.utils.html import format_html
 
-from registrations.utils import get_rapidpro_contact, contact_in_rapidpro_groups
+from registrations.utils import contact_in_rapidpro_groups, get_rapidpro_contact
 from registrations.validators import msisdn_validator
 
 
