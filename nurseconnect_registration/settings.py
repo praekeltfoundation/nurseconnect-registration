@@ -143,3 +143,5 @@ REST_FRAMEWORK = {
 
 WHATSAPP_URL = env("WHATSAPP_URL", str, "https://whatsapp.praekelt.org")
 WHATSAPP_TOKEN = env("WHATSAPP_TOKEN", str, "REPLACEME")
+
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", str, "amqp://")
