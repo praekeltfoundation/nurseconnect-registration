@@ -67,7 +67,7 @@ class RegistrationDetailsForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
+        self.request = kwargs.pop("request", None)
         super(RegistrationDetailsForm, self).__init__(*args, **kwargs)
 
     def clean_msisdn(self):
@@ -79,7 +79,9 @@ class RegistrationDetailsForm(forms.Form):
         # Check if number already registered
         contact = get_rapidpro_contact(formatted_msisdn)
         self.request.session["contact"] = contact
-        if contact_in_rapidpro_groups(contact, ["nurseconnect-sms", "nurseconnect-whatsapp"]):
+        if contact_in_rapidpro_groups(
+            contact, ["nurseconnect-sms", "nurseconnect-whatsapp"]
+        ):
             raise forms.ValidationError(self.EXISTING_NUMBER_ERROR_MESSAGE)
         return formatted_msisdn
 

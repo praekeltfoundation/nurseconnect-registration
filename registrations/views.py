@@ -33,7 +33,7 @@ class RegistrationDetailsView(FormView):
 
     def get_form_kwargs(self):
         kwargs = super(RegistrationDetailsView, self).get_form_kwargs()
-        kwargs['request'] = self.request
+        kwargs["request"] = self.request
         return kwargs
 
     def form_valid(self, form):
