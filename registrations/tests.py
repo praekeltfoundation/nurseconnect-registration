@@ -1,3 +1,5 @@
+import json
+from datetime import datetime
 from unittest import mock
 
 import responses
@@ -114,15 +116,19 @@ class ClinicConfirmTests(TestCase):
         r = self.client.get(reverse("registrations:confirm-clinic"))
         self.assertRedirects(r, reverse("registrations:registration-details"))
 
+    @mock.patch("registrations.views.send_registration_to_openhim")
     @mock.patch("registrations.views.RegistrationConfirmClinic.get_channel")
-    def test_goes_to_end_on_yes(self, get_channel):
+    def test_goes_to_end_on_yes(self, get_channel, _):
         """
         If "yes" is selected, we should set the channel and redirect to the success page
         """
         get_channel.return_value = "WhatsApp"
         session = self.client.session
         session["clinic_name"] = "Test clinic"
-        session["registration_details"] = {"msisdn": "+27820001001"}
+        session["registration_details"] = {
+            "msisdn": "+27820001001",
+            "clinic_code": "123456",
+        }
         session.save()
         r = self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
         self.assertEqual(self.client.session["channel"], "WhatsApp")
@@ -139,7 +145,8 @@ class ClinicConfirmTests(TestCase):
         self.assertRedirects(r, reverse("registrations:registration-details"))
 
     @responses.activate
-    def test_get_channel_whatsapp(self):
+    @mock.patch("registrations.views.send_registration_to_openhim")
+    def test_get_channel_whatsapp(self, _):
         """
         If the user has a whatsapp account, the channel should be whatsapp
         """
@@ -154,14 +161,18 @@ class ClinicConfirmTests(TestCase):
         )
         session = self.client.session
         session["clinic_name"] = "Test clinic"
-        session["registration_details"] = {"msisdn": "+27820001001"}
+        session["registration_details"] = {
+            "msisdn": "+27820001001",
+            "clinic_code": "123456",
+        }
         session.save()
         r = self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
         self.assertEqual(self.client.session["channel"], "WhatsApp")
         self.assertRedirects(r, reverse("registrations:success"))
 
     @responses.activate
-    def test_get_channel_sms(self):
+    @mock.patch("registrations.views.send_registration_to_openhim")
+    def test_get_channel_sms(self, _):
         """
         If the user doesn't have a whatsapp account, the channel should be sms
         """
@@ -172,7 +183,10 @@ class ClinicConfirmTests(TestCase):
         )
         session = self.client.session
         session["clinic_name"] = "Test clinic"
-        session["registration_details"] = {"msisdn": "+27820001001"}
+        session["registration_details"] = {
+            "msisdn": "+27820001001",
+            "clinic_code": "123456",
+        }
         session.save()
         r = self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
         self.assertEqual(self.client.session["channel"], "SMS")
@@ -217,6 +231,49 @@ class ClinicConfirmTests(TestCase):
             self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
         [error_log] = logs.output
         self.assertIn("WhatsApp API error limit reached", error_log)
+
+    @responses.activate
+    @mock.patch("registrations.views.datetime")
+    @mock.patch("registrations.views.RegistrationConfirmClinic.get_channel")
+    def test_correct_info_sent_to_openhim(self, get_channel, dt):
+        """
+        Check that the correct values for the registration are being sent to the OpenHIM
+        API.
+        """
+        responses.add(responses.POST, "http://testopenhim/nc/subscription")
+        dt.utcnow.return_value = datetime(2019, 1, 1)
+        get_channel.return_value = "WhatsApp"
+        session = self.client.session
+        session["clinic_name"] = "Test clinic"
+        session["registration_details"] = {
+            "msisdn": "+27820001001",
+            "clinic_code": "123456",
+        }
+        session["contact"] = {"fields": {"persal": "testpersal", "sanc": "testsanc"}}
+        session["registered_by"] = "+27820001002"
+        session.save()
+        self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
+        [call] = responses.calls
+        self.assertEqual(
+            json.loads(call.request.body),
+            {
+                "mha": 1,
+                "swt": 7,
+                "type": 7,
+                "cmsisdn": "+27820001001",
+                "dmsisdn": "+27820001002",
+                "rmsisdn": None,
+                "faccode": "123456",
+                "id": "27820001001^^^ZAF^TEL",
+                "dob": None,
+                "persal": "testpersal",
+                "sanc": "testsanc",
+                "encdate": "20190101000000",
+            },
+        )
+        self.assertEqual(
+            call.request.headers["Authorization"], "Basic UkVQTEFDRU1FOlJFUExBQ0VNRQ=="
+        )
 
 
 class RegistrationSuccessTests(TestCase):
