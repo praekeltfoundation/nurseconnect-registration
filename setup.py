@@ -24,6 +24,7 @@ setup(
         # wabclient depends on six, but doesn't specify it in dependancies
         "six==1.12.0",
         "celery==4.3.0",
+        "raven==6.10.0",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",

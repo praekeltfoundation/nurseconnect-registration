@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "watchman",
     "rest_framework",
     "rest_framework.authtoken",
+    "raven.contrib.django.raven_compat",
 ]
 
 MIDDLEWARE = [
@@ -140,6 +141,8 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
     ),
 }
+
+RAVEN_CONFIG = {"dsn": env("SENTRY_DSN", str, None)}
 
 RAPIDPRO_URL = env("RAPIDPRO_URL", str, "REPLACEME")
 RAPIDPRO_TOKEN = env("RAPIDPRO_TOKEN", str, "REPLACEME")
