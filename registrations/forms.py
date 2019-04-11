@@ -1,5 +1,7 @@
 import phonenumbers
+import requests
 from django import forms
+from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from django.utils.html import format_html
@@ -95,4 +97,16 @@ class RegistrationDetailsForm(forms.Form):
         code = self.cleaned_data["clinic_code"]
         if not code.isdigit():
             raise forms.ValidationError(self.CLINIC_CODE_ERROR_MESSAGE)
+
+        response = requests.get(
+            "%sNCfacilityCheck" % settings.JEMBI_URL,
+            params={"criteria": "value:%s" % code},
+            auth=settings.JEMBI_AUTH,
+        )
+        data = response.json()
+        if data["height"] != 1:
+            raise forms.ValidationError(self.CLINIC_CODE_ERROR_MESSAGE)
+        self.request.session["clinic_name"] = data["rows"][0][2]
+        self.request.session["clinic_code"] = code
+
         return code

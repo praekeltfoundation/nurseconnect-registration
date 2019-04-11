@@ -40,8 +40,6 @@ class RegistrationDetailsView(FormView):
 
     def form_valid(self, form):
         self.request.session["registration_details"] = form.cleaned_data
-        # TODO: Replace with result of clinic code check
-        self.request.session["clinic_name"] = "Test clinic"
 
         contact = self.request.session["contact"]
         if contact_in_rapidpro_groups(contact, ["opted-out"]):
