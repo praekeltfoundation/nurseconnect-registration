@@ -209,7 +209,7 @@ class RegistrationDetailsTest(TestCase):
         }
         responses.add(
             responses.GET,
-            "https://jembi.praekelt.org/NCfacilityCheck?"
+            "http://testopenhim/NCfacilityCheck?"
             + urlencode({"criteria": "value:123456"}),
             json=clinic_data,
             status=200,
@@ -244,7 +244,7 @@ class RegistrationDetailsTest(TestCase):
         }
         responses.add(
             responses.GET,
-            "https://jembi.praekelt.org/NCfacilityCheck?"
+            "http://testopenhim/NCfacilityCheck?"
             + urlencode({"criteria": "value:123456"}),
             json=clinic_data,
             status=200,
@@ -267,7 +267,7 @@ class RegistrationDetailsTest(TestCase):
         clinic_data = {"title": "", "headers": [], "rows": [], "width": 0, "height": 0}
         responses.add(
             responses.GET,
-            "https://jembi.praekelt.org/NCfacilityCheck?"
+            "http://testopenhim/NCfacilityCheck?"
             + urlencode({"criteria": "value:654321"}),
             json=clinic_data,
             status=200,
@@ -286,7 +286,7 @@ class RegistrationDetailsTest(TestCase):
         to the user, asking them to try again.
         """
         responses.add(
-            responses.GET, "https://jembi.praekelt.org/NCfacilityCheck", status=500
+            responses.GET, "http://testopenhim/NCfacilityCheck", status=500
         )
         r = self.client.get(reverse("registrations:registration-details"))
         form = RegistrationDetailsForm(
@@ -304,7 +304,7 @@ class RegistrationDetailsTest(TestCase):
         about it
         """
         responses.add(
-            responses.GET, "https://jembi.praekelt.org/NCfacilityCheck", status=500
+            responses.GET, "http://testopenhim/NCfacilityCheck", status=500
         )
         with self.assertLogs(level="ERROR") as logs:
             self.client.post(
@@ -341,7 +341,7 @@ class RegistrationDetailsTest(TestCase):
         }
         responses.add(
             responses.GET,
-            "https://jembi.praekelt.org/NCfacilityCheck?"
+            "http://testopenhim/NCfacilityCheck?"
             + urlencode({"criteria": "value:123456"}),
             json=clinic_data,
             status=200,

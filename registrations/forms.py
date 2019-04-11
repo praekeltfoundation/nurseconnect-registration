@@ -103,9 +103,9 @@ class RegistrationDetailsForm(forms.Form):
         #  Check clinic code exists
         try:
             response = requests.get(
-                "%sNCfacilityCheck" % settings.JEMBI_URL,
+                "%s/NCfacilityCheck" % settings.OPENHIM_URL,
                 params={"criteria": "value:%s" % code},
-                auth=settings.JEMBI_AUTH,
+                auth=settings.OPENHIM_AUTH,
             )
             response.raise_for_status()
         except requests.exceptions.HTTPError:

@@ -10,5 +10,3 @@ RAPIDPRO_TOKEN = "some_token"
 CELERY_TASK_ALWAYS_EAGER = True
 
 OPENHIM_URL = "http://testopenhim"
-
-JEMBI_URL = "https://jembi.praekelt.org/"
