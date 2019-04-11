@@ -1,4 +1,5 @@
 import logging
+from json import JSONDecodeError
 
 import phonenumbers
 import requests
@@ -7,7 +8,6 @@ from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from django.utils.html import format_html
-from json import JSONDecodeError
 from temba_client.exceptions import TembaException
 
 from registrations.utils import contact_in_rapidpro_groups, get_rapidpro_contact
@@ -107,6 +107,7 @@ class RegistrationDetailsForm(forms.Form):
                 "%s/NCfacilityCheck" % settings.OPENHIM_URL,
                 params={"criteria": "value:%s" % code},
                 auth=settings.OPENHIM_AUTH,
+                timeout=5,
             )
             response.raise_for_status()
             data = response.json()

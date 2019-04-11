@@ -285,9 +285,7 @@ class RegistrationDetailsTest(TestCase):
         If there's an error making the HTTP request, an error message should be returned
         to the user, asking them to try again.
         """
-        responses.add(
-            responses.GET, "http://testopenhim/NCfacilityCheck", status=500
-        )
+        responses.add(responses.GET, "http://testopenhim/NCfacilityCheck", status=500)
         r = self.client.get(reverse("registrations:registration-details"))
         form = RegistrationDetailsForm(
             {"clinic_code": "123456"}, request=r.wsgi_request
@@ -303,9 +301,7 @@ class RegistrationDetailsTest(TestCase):
         If there are multiple HTTP errors, then it should be logged so that we know
         about it
         """
-        responses.add(
-            responses.GET, "http://testopenhim/NCfacilityCheck", status=500
-        )
+        responses.add(responses.GET, "http://testopenhim/NCfacilityCheck", status=500)
         with self.assertLogs(level="ERROR") as logs:
             self.client.post(
                 reverse("registrations:registration-details"), {"clinic_code": "123456"}
