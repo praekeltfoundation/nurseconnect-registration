@@ -1,3 +1,5 @@
+import logging
+
 import phonenumbers
 import requests
 from django import forms
@@ -98,11 +100,23 @@ class RegistrationDetailsForm(forms.Form):
         if not code.isdigit():
             raise forms.ValidationError(self.CLINIC_CODE_ERROR_MESSAGE)
 
-        response = requests.get(
-            "%sNCfacilityCheck" % settings.JEMBI_URL,
-            params={"criteria": "value:%s" % code},
-            auth=settings.JEMBI_AUTH,
-        )
+        #  Check clinic code exists
+        try:
+            response = requests.get(
+                "%sNCfacilityCheck" % settings.JEMBI_URL,
+                params={"criteria": "value:%s" % code},
+                auth=settings.JEMBI_AUTH,
+            )
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            errors = self.request.session.get("jembi_api_errors", 0)
+            self.request.session["jembi_api_errors"] = errors + 1
+            if errors + 1 >= 3:
+                logging.exception("Jembi API error limit reached")
+            raise forms.ValidationError(
+                "There was an error checking your details. Please try again."
+            )
+
         data = response.json()
         if data["height"] != 1:
             raise forms.ValidationError(self.CLINIC_CODE_ERROR_MESSAGE)

@@ -280,6 +280,46 @@ class RegistrationDetailsTest(TestCase):
         self.assertIn("clinic_code", form.errors)
 
     @responses.activate
+    def test_check_clinic_code_error(self):
+        """
+        If there's an error making the HTTP request, an error message should be returned
+        to the user, asking them to try again.
+        """
+        responses.add(
+            responses.GET, "https://jembi.praekelt.org/NCfacilityCheck", status=500
+        )
+        r = self.client.get(reverse("registrations:registration-details"))
+        form = RegistrationDetailsForm(
+            {"clinic_code": "123456"}, request=r.wsgi_request
+        )
+        form.is_valid()
+        self.assertIn("clinic_code", form.errors)
+        self.assertIn("jembi_api_errors", r.wsgi_request.session)
+        self.assertEqual(r.wsgi_request.session["jembi_api_errors"], 1)
+
+    @responses.activate
+    def test_check_clinic_code_multiple_errors(self):
+        """
+        If there are multiple HTTP errors, then it should be logged so that we know
+        about it
+        """
+        responses.add(
+            responses.GET, "https://jembi.praekelt.org/NCfacilityCheck", status=500
+        )
+        with self.assertLogs(level="ERROR") as logs:
+            self.client.post(
+                reverse("registrations:registration-details"), {"clinic_code": "123456"}
+            )
+            self.client.post(
+                reverse("registrations:registration-details"), {"clinic_code": "123456"}
+            )
+            self.client.post(
+                reverse("registrations:registration-details"), {"clinic_code": "123456"}
+            )
+        [error_log] = logs.output
+        self.assertIn("Jembi API error limit reached", error_log)
+
+    @responses.activate
     def test_form_success(self):
         """
         Should put the form details and clinic name in the session
