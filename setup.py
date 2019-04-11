@@ -24,6 +24,7 @@ setup(
         # wabclient depends on six, but doesn't specify it in dependancies
         "six==1.12.0",
         "celery==4.3.0",
+        "sentry-sdk==0.7.10",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",

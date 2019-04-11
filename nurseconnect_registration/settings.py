@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 import os
 
 import environ
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 env = environ.Env()
 
@@ -140,6 +142,9 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
     ),
 }
+
+SENTRY_DSN = env("SENTRY_DSN", str, None)
+sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
 
 RAPIDPRO_URL = env("RAPIDPRO_URL", str, "REPLACEME")
 RAPIDPRO_TOKEN = env("RAPIDPRO_TOKEN", str, "REPLACEME")
