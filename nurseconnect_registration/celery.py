@@ -1,8 +1,8 @@
 import os
 
+import sentry_sdk
 from celery import Celery
 from django.conf import settings
-import sentry_sdk
 from sentry_sdk.integrations.celery import CeleryIntegration
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "nurseconnect_registration.settings")
