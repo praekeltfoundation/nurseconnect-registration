@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 import os
 
 import environ
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 env = environ.Env()
 
@@ -48,7 +50,6 @@ INSTALLED_APPS = [
     "watchman",
     "rest_framework",
     "rest_framework.authtoken",
-    "raven.contrib.django.raven_compat",
 ]
 
 MIDDLEWARE = [
@@ -142,7 +143,8 @@ REST_FRAMEWORK = {
     ),
 }
 
-RAVEN_CONFIG = {"dsn": env("SENTRY_DSN", str, None)}
+SENTRY_DSN = env("SENTRY_DSN", str, None)
+sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
 
 RAPIDPRO_URL = env("RAPIDPRO_URL", str, "REPLACEME")
 RAPIDPRO_TOKEN = env("RAPIDPRO_TOKEN", str, "REPLACEME")
