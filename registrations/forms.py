@@ -7,6 +7,7 @@ from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from django.utils.html import format_html
+from json import JSONDecodeError
 from temba_client.exceptions import TembaException
 
 from registrations.utils import contact_in_rapidpro_groups, get_rapidpro_contact
@@ -108,7 +109,8 @@ class RegistrationDetailsForm(forms.Form):
                 auth=settings.OPENHIM_AUTH,
             )
             response.raise_for_status()
-        except requests.exceptions.HTTPError:
+            data = response.json()
+        except (requests.exceptions.HTTPError, JSONDecodeError):
             errors = self.request.session.get("jembi_api_errors", 0)
             self.request.session["jembi_api_errors"] = errors + 1
             if errors + 1 >= 3:
@@ -117,7 +119,6 @@ class RegistrationDetailsForm(forms.Form):
                 "There was an error checking your details. Please try again."
             )
 
-        data = response.json()
         if data["height"] != 1:
             raise forms.ValidationError(self.CLINIC_CODE_ERROR_MESSAGE)
         self.request.session["clinic_name"] = data["rows"][0][2]
