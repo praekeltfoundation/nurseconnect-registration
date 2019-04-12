@@ -9,6 +9,7 @@ from requests.exceptions import RequestException
 from nurseconnect_registration.celery import app
 from registrations.utils import get_rapidpro_flow_by_name, tembaclient
 from temba_client.utils import format_iso8601
+from registrations.utils import get_rapidpro_contact
 
 openhim_session = requests.Session()
 openhim_session.auth = settings.OPENHIM_AUTH
@@ -65,6 +66,7 @@ def send_registration_to_rapidpro(
         "facility_code": clinic_code,
         "registration_date": format_iso8601(datetime.fromtimestamp(timestamp)),
     }
+    contact = get_rapidpro_contact(msisdn)  # Refresh contact so we don't recreate it
     if contact:
         uuid = contact.get("uuid")
         contact = tembaclient.update_contact(uuid, fields=contact_data)

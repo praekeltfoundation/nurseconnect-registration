@@ -649,6 +649,39 @@ class ClinicConfirmTests(TestCase):
         Check that the correct information is being sent to RapidPro to create
         the registration.
         """
+        contact_list_data = {
+            "next": None,
+            "previous": None,
+            "results": [
+                {
+                    "uuid": "89341938-7c98-4c8e-bc9d-7cd8c9cfc468",
+                    "name": "Test User",
+                    "language": None,
+                    "urns": ["tel:+27820001001", "whatsapp:27820001001"],
+                    "groups": [],
+                    "fields": {
+                        "persal": None,
+                        "opt_out_date": None,
+                        "registered_by": "+27820001002",
+                        "facility_code": "123456",
+                        "registration_date": "2019-01-01T00:00:00.000000Z",
+                        "preferred_channel": "whatsapp",
+                        "sanc": None,
+                    },
+                    "blocked": None,
+                    "stopped": None,
+                    "created_on": "2019-01-01T00:00:00.000000Z",
+                    "modified_on": "2019-01-01T00:00:00.000000Z",
+                }
+            ],
+        }
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json?"
+            + urlencode({"urn": "tel:+27820001001"}),
+            json=contact_list_data,
+        )
+
         response_data = self.get_rp_responses_data()
         responses.add(
             responses.POST,
@@ -684,7 +717,7 @@ class ClinicConfirmTests(TestCase):
         session["registered_by"] = "+27820001002"
         session.save()
         self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
-        [rp_contact_call, rp_call_2, rp_flow_start_call] = responses.calls
+        [rp_call_1, rp_contact_call, rp_call_3, rp_flow_start_call] = responses.calls
 
         self.assertEqual(
             json.loads(rp_contact_call.request.body),
@@ -714,6 +747,13 @@ class ClinicConfirmTests(TestCase):
         Check that the correct information is being sent to RapidPro to create
         the registration.
         """
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json?"
+            + urlencode({"urn": "tel:+27820001001"}),
+            json={"next": None, "previous": None, "results": []},
+        )
+
         response_data = self.get_rp_responses_data()
         responses.add(
             responses.POST,
@@ -746,7 +786,7 @@ class ClinicConfirmTests(TestCase):
         session["registered_by"] = "+27820001002"
         session.save()
         self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
-        [rp_contact_call, rp_call_2, rp_flow_start_call] = responses.calls
+        [rp_call_1, rp_contact_call, rp_call_3, rp_flow_start_call] = responses.calls
 
         self.assertEqual(
             json.loads(rp_contact_call.request.body),
