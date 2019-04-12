@@ -7,8 +7,7 @@ from django.conf import settings
 from requests.exceptions import RequestException
 
 from nurseconnect_registration.celery import app
-
-from registrations.utils import tembaclient, get_rapidpro_flow_by_name
+from registrations.utils import get_rapidpro_flow_by_name, tembaclient
 
 openhim_session = requests.Session()
 openhim_session.auth = settings.OPENHIM_AUTH
@@ -69,9 +68,7 @@ def send_registration_to_rapidpro(
     }
     if contact:
         uuid = contact.get("uuid")
-        contact = tembaclient.update_contact(
-            uuid, fields=contact_data, groups=[group]
-        )
+        contact = tembaclient.update_contact(uuid, fields=contact_data, groups=[group])
     else:
         urns = ["tel:%s" % msisdn]
         if channel == "WhatsApp":
