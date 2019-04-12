@@ -8,6 +8,7 @@ from requests.exceptions import RequestException
 
 from nurseconnect_registration.celery import app
 from registrations.utils import get_rapidpro_flow_by_name, tembaclient
+from temba_client.exceptions import TembaException
 from temba_client.utils import format_iso8601
 from registrations.utils import get_rapidpro_contact
 
@@ -49,7 +50,7 @@ def send_registration_to_openhim(
 
 
 @app.task(
-    autoretry_for=(RequestException, SoftTimeLimitExceeded),
+    autoretry_for=(RequestException, SoftTimeLimitExceeded, TembaException),
     retry_backoff=True,
     max_retries=15,
     acks_late=True,
