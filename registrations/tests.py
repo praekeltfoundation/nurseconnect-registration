@@ -578,31 +578,12 @@ class ClinicConfirmTests(TestCase):
         """
         Returns data to be used for resposes to RapidPro requests in multiple tests.
         """
-        group_data = {
-            "next": None,
-            "previous": None,
-            "results": [
-                {
-                    "uuid": "9e8e3710-dc05-4054-99f1-4d8c32310e6a",
-                    "name": "nurseconnect-whatsapp",
-                    "query": None,
-                    "status": "ready",
-                    "count": 6,
-                }
-            ],
-        }
-
         contact_data = {
             "uuid": "89341938-7c98-4c8e-bc9d-7cd8c9cfc468",
             "name": "Test User",
             "language": None,
             "urns": ["tel:+27820001001", "whatsapp:27820001001"],
-            "groups": [
-                {
-                    "uuid": "3b46ce0a-d1ce-4ced-af63-fb81bf82999a",
-                    "name": "nurseconnect-whatsapp",
-                }
-            ],
+            "groups": [],
             "fields": {
                 "persal": None,
                 "opt_out_date": None,
@@ -654,7 +635,6 @@ class ClinicConfirmTests(TestCase):
             "modified_on": "2013-08-19T19:11:21.082Z",
         }
         return {
-            "group_data": group_data,
             "contact_data": contact_data,
             "flows_data": flows_data,
             "flow_start_data": flow_start_data,
@@ -670,13 +650,6 @@ class ClinicConfirmTests(TestCase):
         the registration.
         """
         response_data = self.get_rp_responses_data()
-        responses.add(
-            responses.GET,
-            "https://test.rapidpro/api/v2/groups.json?"
-            + urlencode({"name": "nurseconnect-whatsapp"}),
-            json=response_data["group_data"],
-        )
-
         responses.add(
             responses.POST,
             "https://test.rapidpro/api/v2/contacts.json?"
@@ -711,7 +684,7 @@ class ClinicConfirmTests(TestCase):
         session["registered_by"] = "+27820001002"
         session.save()
         self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
-        [rp_call_1, rp_contact_call, rp_call_3, rp_flow_start_call] = responses.calls
+        [rp_contact_call, rp_call_2, rp_flow_start_call] = responses.calls
 
         self.assertEqual(
             json.loads(rp_contact_call.request.body),
@@ -722,7 +695,6 @@ class ClinicConfirmTests(TestCase):
                     "facility_code": "123456",
                     "registration_date": "2019-01-01T00:00:00",
                 },
-                "groups": ["9e8e3710-dc05-4054-99f1-4d8c32310e6a"],
             },
         )
         self.assertEqual(
@@ -743,13 +715,6 @@ class ClinicConfirmTests(TestCase):
         the registration.
         """
         response_data = self.get_rp_responses_data()
-        responses.add(
-            responses.GET,
-            "https://test.rapidpro/api/v2/groups.json?"
-            + urlencode({"name": "nurseconnect-whatsapp"}),
-            json=response_data["group_data"],
-        )
-
         responses.add(
             responses.POST,
             "https://test.rapidpro/api/v2/contacts.json?",
@@ -781,7 +746,7 @@ class ClinicConfirmTests(TestCase):
         session["registered_by"] = "+27820001002"
         session.save()
         self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
-        [rp_call_1, rp_contact_call, rp_call_3, rp_flow_start_call] = responses.calls
+        [rp_contact_call, rp_call_2, rp_flow_start_call] = responses.calls
 
         self.assertEqual(
             json.loads(rp_contact_call.request.body),
@@ -793,7 +758,6 @@ class ClinicConfirmTests(TestCase):
                     "facility_code": "123456",
                     "registration_date": "2019-01-01T00:00:00",
                 },
-                "groups": ["9e8e3710-dc05-4054-99f1-4d8c32310e6a"],
             },
         )
         self.assertEqual(

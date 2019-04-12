@@ -58,8 +58,6 @@ def send_registration_to_rapidpro(
     contact, msisdn, referral_msisdn, channel, clinic_code, timestamp
 ):
     # Create/Update contact
-    group_name = "nurseconnect-%s" % channel.lower()
-    group = tembaclient.get_groups(name=group_name).first()
     contact_data = {
         "preferred_channel": channel.lower(),
         "registered_by": referral_msisdn,
@@ -68,14 +66,13 @@ def send_registration_to_rapidpro(
     }
     if contact:
         uuid = contact.get("uuid")
-        contact = tembaclient.update_contact(uuid, fields=contact_data, groups=[group])
+        contact = tembaclient.update_contact(uuid, fields=contact_data)
     else:
         urns = ["tel:%s" % msisdn]
         if channel == "WhatsApp":
             urns.append("whatsapp:%s" % msisdn.replace("+", ""))
         contact = tembaclient.create_contact(
-            urns=urns, fields=contact_data, groups=[group]
-        )
+            urns=urns, fields=contact_data)
 
     # Start the contact on the registration flow
     flow = get_rapidpro_flow_by_name("post registration")
