@@ -97,7 +97,7 @@ class RegistrationDetailsTest(TestCase):
         form.is_valid()
         self.assertNotIn("msisdn", form.errors)
         self.assertIn("contact", r.wsgi_request.session)
-        self.assertIsNone(r.wsgi_request.session["contact"])
+        self.assertEqual(r.wsgi_request.session["contact"], {})
 
         contact_data = {
             "next": None,
@@ -409,8 +409,9 @@ class ClinicConfirmTests(TestCase):
         self.assertRedirects(r, reverse("registrations:registration-details"))
 
     @mock.patch("registrations.views.send_registration_to_openhim")
+    @mock.patch("registrations.views.send_registration_to_rapidpro")
     @mock.patch("registrations.views.RegistrationConfirmClinic.get_channel")
-    def test_goes_to_end_on_yes(self, get_channel, _):
+    def test_goes_to_end_on_yes(self, get_channel, _, _2):
         """
         If "yes" is selected, we should set the channel and redirect to the success page
         """
@@ -421,6 +422,7 @@ class ClinicConfirmTests(TestCase):
             "msisdn": "+27820001001",
             "clinic_code": "123456",
         }
+        session["contact"] = {}
         session.save()
         r = self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
         self.assertEqual(self.client.session["channel"], "WhatsApp")
@@ -438,7 +440,8 @@ class ClinicConfirmTests(TestCase):
 
     @responses.activate
     @mock.patch("registrations.views.send_registration_to_openhim")
-    def test_get_channel_whatsapp(self, _):
+    @mock.patch("registrations.views.send_registration_to_rapidpro")
+    def test_get_channel_whatsapp(self, _, _2):
         """
         If the user has a whatsapp account, the channel should be whatsapp
         """
@@ -457,6 +460,7 @@ class ClinicConfirmTests(TestCase):
             "msisdn": "+27820001001",
             "clinic_code": "123456",
         }
+        session["contact"] = {}
         session.save()
         r = self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
         self.assertEqual(self.client.session["channel"], "WhatsApp")
@@ -464,7 +468,8 @@ class ClinicConfirmTests(TestCase):
 
     @responses.activate
     @mock.patch("registrations.views.send_registration_to_openhim")
-    def test_get_channel_sms(self, _):
+    @mock.patch("registrations.views.send_registration_to_rapidpro")
+    def test_get_channel_sms(self, _, _2):
         """
         If the user doesn't have a whatsapp account, the channel should be sms
         """
@@ -479,6 +484,7 @@ class ClinicConfirmTests(TestCase):
             "msisdn": "+27820001001",
             "clinic_code": "123456",
         }
+        session["contact"] = {}
         session.save()
         r = self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
         self.assertEqual(self.client.session["channel"], "SMS")
@@ -525,9 +531,10 @@ class ClinicConfirmTests(TestCase):
         self.assertIn("WhatsApp API error limit reached", error_log)
 
     @responses.activate
+    @mock.patch("registrations.views.send_registration_to_rapidpro")
     @mock.patch("registrations.views.datetime")
     @mock.patch("registrations.views.RegistrationConfirmClinic.get_channel")
-    def test_correct_info_sent_to_openhim(self, get_channel, dt):
+    def test_correct_info_sent_to_openhim(self, get_channel, dt, _):
         """
         Check that the correct values for the registration are being sent to the OpenHIM
         API.
