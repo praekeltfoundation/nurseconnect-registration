@@ -5,12 +5,15 @@ import requests
 from celery.exceptions import SoftTimeLimitExceeded
 from django.conf import settings
 from requests.exceptions import RequestException
-
-from nurseconnect_registration.celery import app
-from registrations.utils import get_rapidpro_flow_by_name, tembaclient
 from temba_client.exceptions import TembaException
 from temba_client.utils import format_iso8601
-from registrations.utils import get_rapidpro_contact
+
+from nurseconnect_registration.celery import app
+from registrations.utils import (
+    get_rapidpro_contact,
+    get_rapidpro_flow_by_name,
+    tembaclient,
+)
 
 openhim_session = requests.Session()
 openhim_session.auth = settings.OPENHIM_AUTH
@@ -75,8 +78,7 @@ def send_registration_to_rapidpro(
         urns = ["tel:%s" % msisdn]
         if channel == "WhatsApp":
             urns.append("whatsapp:%s" % msisdn.replace("+", ""))
-        contact = tembaclient.create_contact(
-            urns=urns, fields=contact_data)
+        contact = tembaclient.create_contact(urns=urns, fields=contact_data)
 
     # Start the contact on the registration flow
     flow = get_rapidpro_flow_by_name("post registration")
