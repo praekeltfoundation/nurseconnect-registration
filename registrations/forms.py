@@ -1,5 +1,10 @@
+import logging
+from json import JSONDecodeError
+
 import phonenumbers
+import requests
 from django import forms
+from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.functional import lazy
 from django.utils.html import format_html
@@ -95,4 +100,29 @@ class RegistrationDetailsForm(forms.Form):
         code = self.cleaned_data["clinic_code"]
         if not code.isdigit():
             raise forms.ValidationError(self.CLINIC_CODE_ERROR_MESSAGE)
+
+        #  Check clinic code exists
+        try:
+            response = requests.get(
+                "%s/NCfacilityCheck" % settings.OPENHIM_URL,
+                params={"criteria": "value:%s" % code},
+                auth=settings.OPENHIM_AUTH,
+                timeout=5,
+            )
+            response.raise_for_status()
+            data = response.json()
+        except (requests.exceptions.HTTPError, JSONDecodeError):
+            errors = self.request.session.get("jembi_api_errors", 0)
+            self.request.session["jembi_api_errors"] = errors + 1
+            if errors + 1 >= 3:
+                logging.exception("Jembi API error limit reached")
+            raise forms.ValidationError(
+                "There was an error checking your details. Please try again."
+            )
+
+        if data["height"] != 1:
+            raise forms.ValidationError(self.CLINIC_CODE_ERROR_MESSAGE)
+        self.request.session["clinic_name"] = data["rows"][0][2]
+        self.request.session["clinic_code"] = code
+
         return code

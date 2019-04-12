@@ -191,7 +191,6 @@ class RegistrationDetailsTest(TestCase):
                 }
             ],
         }
-
         responses.add(
             responses.GET,
             "https://test.rapidpro/api/v2/contacts.json?"
@@ -199,6 +198,21 @@ class RegistrationDetailsTest(TestCase):
             json=contact_data,
             status=200,
             headers={"Authorization": "Token some_token"},
+        )
+
+        clinic_data = {
+            "title": "Facility Check Nurse Connect",
+            "headers": [],
+            "rows": [["123456", "yGVQRg2PXNh", "Test Clinic"]],
+            "width": 3,
+            "height": 1,
+        }
+        responses.add(
+            responses.GET,
+            "http://testopenhim/NCfacilityCheck?"
+            + urlencode({"criteria": "value:123456"}),
+            json=clinic_data,
+            status=200,
         )
 
         referral = ReferralLink.objects.create(msisdn="+27820001001")
@@ -213,12 +227,33 @@ class RegistrationDetailsTest(TestCase):
             },
         )
         self.assertRedirects(r, reverse("registrations:confirm-optin"))
+        self.assertEqual(self.client.session["clinic_name"], "Test Clinic")
+        self.assertEqual(self.client.session["clinic_code"], "123456")
 
+    @responses.activate
     def test_clinic_code_validation(self):
         """
-        The clinic code should be digits
+        The clinic code should be digits and exist in DHIS2
         """
-        form = RegistrationDetailsForm({"clinic_code": "123456"})
+        clinic_data = {
+            "title": "Facility Check Nurse Connect",
+            "headers": [],
+            "rows": [["123456", "yGVQRg2PXNh", "Test Clinic"]],
+            "width": 3,
+            "height": 1,
+        }
+        responses.add(
+            responses.GET,
+            "http://testopenhim/NCfacilityCheck?"
+            + urlencode({"criteria": "value:123456"}),
+            json=clinic_data,
+            status=200,
+        )
+        r = self.client.get(reverse("registrations:registration-details"))
+
+        form = RegistrationDetailsForm(
+            {"clinic_code": "123456"}, request=r.wsgi_request
+        )
         form.is_valid()
         self.assertNotIn("clinic_code", form.errors)
         self.assertEqual(form.clean_clinic_code(), "123456")
@@ -227,6 +262,58 @@ class RegistrationDetailsTest(TestCase):
         form = RegistrationDetailsForm({"clinic_code": "foobar"})
         form.is_valid()
         self.assertIn("clinic_code", form.errors)
+
+        # not in DHIS2
+        clinic_data = {"title": "", "headers": [], "rows": [], "width": 0, "height": 0}
+        responses.add(
+            responses.GET,
+            "http://testopenhim/NCfacilityCheck?"
+            + urlencode({"criteria": "value:654321"}),
+            json=clinic_data,
+            status=200,
+        )
+
+        form = RegistrationDetailsForm(
+            {"clinic_code": "654321"}, request=r.wsgi_request
+        )
+        form.is_valid()
+        self.assertIn("clinic_code", form.errors)
+
+    @responses.activate
+    def test_check_clinic_code_error(self):
+        """
+        If there's an error making the HTTP request, an error message should be returned
+        to the user, asking them to try again.
+        """
+        responses.add(responses.GET, "http://testopenhim/NCfacilityCheck", status=500)
+        r = self.client.get(reverse("registrations:registration-details"))
+        form = RegistrationDetailsForm(
+            {"clinic_code": "123456"}, request=r.wsgi_request
+        )
+        form.is_valid()
+        self.assertIn("clinic_code", form.errors)
+        self.assertIn("jembi_api_errors", r.wsgi_request.session)
+        self.assertEqual(r.wsgi_request.session["jembi_api_errors"], 1)
+
+    @responses.activate
+    def test_check_clinic_code_multiple_errors(self):
+        """
+        If there are multiple HTTP errors, then it should be logged so that we know
+        about it
+        """
+        responses.add(responses.GET, "http://testopenhim/NCfacilityCheck", status=500)
+        with self.assertLogs(level="ERROR") as logs:
+            self.client.post(
+                reverse("registrations:registration-details"), {"clinic_code": "123456"}
+            )
+            self.client.post(
+                reverse("registrations:registration-details"), {"clinic_code": "123456"}
+            )
+            self.client.post(
+                reverse("registrations:registration-details"), {"clinic_code": "123456"}
+            )
+        [error_log] = logs.output
+        self.assertIn("Jembi API error limit reached", error_log)
 
     @responses.activate
     def test_form_success(self):
@@ -240,6 +327,22 @@ class RegistrationDetailsTest(TestCase):
             status=200,
             headers={"Authorization": "Token some_token"},
         )
+
+        clinic_data = {
+            "title": "Facility Check Nurse Connect",
+            "headers": [],
+            "rows": [["123456", "yGVQRg2PXNh", "Test Clinic"]],
+            "width": 3,
+            "height": 1,
+        }
+        responses.add(
+            responses.GET,
+            "http://testopenhim/NCfacilityCheck?"
+            + urlencode({"criteria": "value:123456"}),
+            json=clinic_data,
+            status=200,
+        )
+
         r = self.client.post(
             reverse("registrations:registration-details"),
             {
@@ -259,7 +362,8 @@ class RegistrationDetailsTest(TestCase):
                 "terms_and_conditions": ["True"],
             },
         )
-        self.assertEqual(self.client.session["clinic_name"], "Test clinic")
+        self.assertEqual(self.client.session["clinic_name"], "Test Clinic")
+        self.assertEqual(self.client.session["clinic_code"], "123456")
 
 
 class OptinConfirmTests(TestCase):
