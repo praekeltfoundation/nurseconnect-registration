@@ -60,7 +60,7 @@ def send_registration_to_rapidpro(
     # Create/Update contact
     contact_data = {
         "preferred_channel": channel.lower(),
-        "registered_by": referral_msisdn,
+        "registered_by": referral_msisdn or msisdn,
         "facility_code": clinic_code,
         "registration_date": datetime.fromtimestamp(timestamp).isoformat(),
     }
