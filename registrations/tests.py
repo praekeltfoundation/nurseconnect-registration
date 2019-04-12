@@ -693,7 +693,7 @@ class ClinicConfirmTests(TestCase):
                     "preferred_channel": "whatsapp",
                     "registered_by": "+27820001002",
                     "facility_code": "123456",
-                    "registration_date": "2019-01-01T00:00:00",
+                    "registration_date": "2019-01-01T00:00:00.000000Z",
                 },
             },
         )
@@ -756,7 +756,7 @@ class ClinicConfirmTests(TestCase):
                     "preferred_channel": "whatsapp",
                     "registered_by": "+27820001002",
                     "facility_code": "123456",
-                    "registration_date": "2019-01-01T00:00:00",
+                    "registration_date": "2019-01-01T00:00:00.000000Z",
                 },
             },
         )

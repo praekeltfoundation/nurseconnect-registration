@@ -8,6 +8,7 @@ from requests.exceptions import RequestException
 
 from nurseconnect_registration.celery import app
 from registrations.utils import get_rapidpro_flow_by_name, tembaclient
+from temba_client.utils import format_iso8601
 
 openhim_session = requests.Session()
 openhim_session.auth = settings.OPENHIM_AUTH
@@ -62,7 +63,7 @@ def send_registration_to_rapidpro(
         "preferred_channel": channel.lower(),
         "registered_by": referral_msisdn or msisdn,
         "facility_code": clinic_code,
-        "registration_date": datetime.fromtimestamp(timestamp).isoformat(),
+        "registration_date": format_iso8601(datetime.fromtimestamp(timestamp)),
     }
     if contact:
         uuid = contact.get("uuid")
