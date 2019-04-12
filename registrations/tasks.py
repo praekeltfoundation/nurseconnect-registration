@@ -8,7 +8,7 @@ from requests.exceptions import RequestException
 
 from nurseconnect_registration.celery import app
 
-from registrations.utils import tembaclient
+from registrations.utils import tembaclient, get_rapidpro_flow_by_name
 
 openhim_session = requests.Session()
 openhim_session.auth = settings.OPENHIM_AUTH
@@ -58,6 +58,7 @@ def send_registration_to_openhim(
 def send_registration_to_rapidpro(
     contact, msisdn, referral_msisdn, channel, clinic_code, timestamp
 ):
+    # Create/Update contact
     group_name = "nurseconnect-%s" % channel.lower()
     group = tembaclient.get_groups(name=group_name).first()
     contact_data = {
@@ -68,13 +69,18 @@ def send_registration_to_rapidpro(
     }
     if contact:
         uuid = contact.get("uuid")
-        new_contact = tembaclient.update_contact(
+        contact = tembaclient.update_contact(
             uuid, fields=contact_data, groups=[group]
         )
     else:
         urns = ["tel:%s" % msisdn]
         if channel == "WhatsApp":
             urns.append("whatsapp:%s" % msisdn.replace("+", ""))
-        new_contact = tembaclient.create_contact(
+        contact = tembaclient.create_contact(
             urns=urns, fields=contact_data, groups=[group]
         )
+
+    # Start the contact on the registration flow
+    flow = get_rapidpro_flow_by_name("post registration")
+    if flow:
+        tembaclient.create_flow_start(flow.uuid, contacts=[contact.uuid])

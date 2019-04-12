@@ -31,6 +31,15 @@ def contact_in_rapidpro_groups(contact, groups):
     return False
 
 
+def get_rapidpro_flow_by_name(name):
+    flows = tembaclient.get_flows().iterfetches()
+    for flow_batch in flows:
+        for flow in flow_batch:
+            if flow.name.lower() == name:
+                return flow
+    return None
+
+
 tembaclient = TembaClient(settings.RAPIDPRO_URL, settings.RAPIDPRO_TOKEN)
 
 # Short timeout since we're making these requests in the HTTP request
