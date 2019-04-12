@@ -8,6 +8,8 @@ from requests.exceptions import RequestException
 
 from nurseconnect_registration.celery import app
 
+from registrations.utils import tembaclient
+
 openhim_session = requests.Session()
 openhim_session.auth = settings.OPENHIM_AUTH
 openhim_session.headers.update({"User-Agent": "NurseConnectRegistration"})
@@ -43,3 +45,36 @@ def send_registration_to_openhim(
     )
     response.raise_for_status()
     return (response.status_code, response.headers, response.content)
+
+
+@app.task(
+    autoretry_for=(RequestException, SoftTimeLimitExceeded),
+    retry_backoff=True,
+    max_retries=15,
+    acks_late=True,
+    soft_time_limit=10,
+    time_limit=15,
+)
+def send_registration_to_rapidpro(
+    contact, msisdn, referral_msisdn, channel, clinic_code, timestamp
+):
+    group_name = "nurseconnect-%s" % channel.lower()
+    group = tembaclient.get_groups(name=group_name).first()
+    contact_data = {
+        "preferred_channel": channel.lower(),
+        "registered_by": referral_msisdn,
+        "facility_code": clinic_code,
+        "registration_date": datetime.fromtimestamp(timestamp).isoformat(),
+    }
+    if contact:
+        uuid = contact.get("uuid")
+        new_contact = tembaclient.update_contact(
+            uuid, fields=contact_data, groups=[group]
+        )
+    else:
+        urns = ["tel:%s" % msisdn]
+        if channel == "WhatsApp":
+            urns.append("whatsapp:%s" % msisdn.replace("+", ""))
+        new_contact = tembaclient.create_contact(
+            urns=urns, fields=contact_data, groups=[group]
+        )
