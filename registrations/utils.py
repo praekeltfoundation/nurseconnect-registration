@@ -20,7 +20,7 @@ def get_rapidpro_contact(msisdn):
         raise e
     if contact:
         return contact.serialize()
-    return None
+    return {}
 
 
 def contact_in_rapidpro_groups(contact, groups):

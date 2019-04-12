@@ -129,15 +129,15 @@ class RegistrationConfirmClinic(TemplateView):
             msisdn=session["registration_details"]["msisdn"],
             referral_msisdn=session.get("registered_by"),
             channel=session["channel"],
-            clinic_code=session["clinic_code"],
+            clinic_code=session["registration_details"]["clinic_code"],
             timestamp=datetime.utcnow().timestamp(),)
         send_registration_to_openhim.delay(
             msisdn=session["registration_details"]["msisdn"],
             referral_msisdn=session.get("registered_by"),
             channel=session["channel"],
             clinic_code=session["registration_details"]["clinic_code"],
-            persal=session.get("contact", {}).get("fields", {}).get("persal"),
-            sanc=session.get("contact", {}).get("fields", {}).get("sanc"),
+            persal=session.get("contact", {}).get("fields", {}).get("persal", None),
+            sanc=session.get("contact", {}).get("fields", {}).get("sanc", None),
             timestamp=datetime.utcnow().timestamp(),
         )
 
