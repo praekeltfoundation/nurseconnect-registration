@@ -12,7 +12,8 @@ from wabclient.exceptions import AddressException
 
 from registrations.forms import RegistrationDetailsForm
 from registrations.models import ReferralLink
-from registrations.tasks import send_registration_to_openhim
+from registrations.tasks import (send_registration_to_openhim,
+                                 send_registration_to_rapidpro)
 from registrations.utils import contact_in_rapidpro_groups, wabclient
 
 WHATSAPP_API_FAILURES = Counter("whatsapp_api_failures", "WhatsApp API failures")
@@ -100,8 +101,6 @@ class RegistrationConfirmClinic(TemplateView):
         if "yes" not in request.POST:
             return redirect(reverse_lazy("registrations:registration-details"))
 
-        # TODO: Create registration
-
         session = request.session
 
         try:
@@ -125,6 +124,13 @@ class RegistrationConfirmClinic(TemplateView):
             )
             return redirect(reverse_lazy("registrations:confirm-clinic"))
 
+        send_registration_to_rapidpro.delay(
+            contact=session["contact"],
+            msisdn=session["registration_details"]["msisdn"],
+            referral_msisdn=session.get("registered_by"),
+            channel=session["channel"],
+            clinic_code=session["clinic_code"],
+            timestamp=datetime.utcnow().timestamp(),)
         send_registration_to_openhim.delay(
             msisdn=session["registration_details"]["msisdn"],
             referral_msisdn=session.get("registered_by"),
