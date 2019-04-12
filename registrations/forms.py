@@ -1,5 +1,6 @@
 import logging
 from json import JSONDecodeError
+from urllib.parse import urljoin
 
 import phonenumbers
 import requests
@@ -104,7 +105,7 @@ class RegistrationDetailsForm(forms.Form):
         #  Check clinic code exists
         try:
             response = requests.get(
-                "%s/NCfacilityCheck" % settings.OPENHIM_URL,
+                urljoin(settings.OPENHIM_URL, "NCfacilityCheck"),
                 params={"criteria": "value:%s" % code},
                 auth=settings.OPENHIM_AUTH,
                 timeout=5,
