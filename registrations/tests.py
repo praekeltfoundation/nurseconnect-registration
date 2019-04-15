@@ -10,6 +10,10 @@ from django.urls import reverse
 
 from registrations.forms import RegistrationDetailsForm
 from registrations.models import ReferralLink
+from registrations.tasks import (
+    send_registration_to_openhim,
+    send_registration_to_rapidpro,
+)
 
 
 class RegistrationDetailsTest(TestCase):
@@ -531,27 +535,29 @@ class ClinicConfirmTests(TestCase):
         self.assertIn("WhatsApp API error limit reached", error_log)
 
     @responses.activate
-    @mock.patch("registrations.views.send_registration_to_rapidpro")
-    @mock.patch("registrations.views.datetime")
-    @mock.patch("registrations.views.RegistrationConfirmClinic.get_channel")
-    def test_correct_info_sent_to_openhim(self, get_channel, dt, _):
+    def test_correct_info_sent_to_openhim(self):
         """
         Check that the correct values for the registration are being sent to the OpenHIM
         API.
         """
         responses.add(responses.POST, "http://testopenhim/nc/subscription")
-        dt.utcnow.return_value = datetime(2019, 1, 1)
-        get_channel.return_value = "WhatsApp"
-        session = self.client.session
-        session["clinic_name"] = "Test clinic"
-        session["registration_details"] = {
-            "msisdn": "+27820001001",
-            "clinic_code": "123456",
-        }
-        session["contact"] = {"fields": {"persal": "testpersal", "sanc": "testsanc"}}
-        session["registered_by"] = "+27820001002"
-        session.save()
-        self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
+        timestamp = datetime(2019, 1, 1).timestamp()
+        channel = "WhatsApp"
+        msisdn = "+27820001001"
+        clinic_code = "123456"
+        contact_persal = "testpersal"
+        contact_sanc = "testsanc"
+        registered_by = "+27820001002"
+
+        send_registration_to_openhim(
+            msisdn,
+            registered_by,
+            channel,
+            clinic_code,
+            contact_persal,
+            contact_sanc,
+            timestamp,
+        )
         [call] = responses.calls
         self.assertEqual(
             json.loads(call.request.body),
@@ -641,10 +647,7 @@ class ClinicConfirmTests(TestCase):
         }
 
     @responses.activate
-    @mock.patch("registrations.views.send_registration_to_openhim")
-    @mock.patch("registrations.views.datetime")
-    @mock.patch("registrations.views.RegistrationConfirmClinic.get_channel")
-    def test_registration_created_for_existing_contact(self, get_channel, dt, _):
+    def test_registration_created_for_existing_contact(self):
         """
         Check that the correct information is being sent to RapidPro to create
         the registration.
@@ -702,21 +705,19 @@ class ClinicConfirmTests(TestCase):
             json=response_data["flow_start_data"],
         )
 
-        dt.utcnow.return_value = datetime(2019, 1, 1)
-        get_channel.return_value = "WhatsApp"
-        session = self.client.session
-        session["clinic_name"] = "Test clinic"
-        session["registration_details"] = {
-            "msisdn": "+27820001001",
-            "clinic_code": "123456",
-        }
-        session["contact"] = {
+        timestamp = datetime(2019, 1, 1).timestamp()
+        channel = "WhatsApp"
+        msisdn = "+27820001001"
+        clinic_code = "123456"
+        registered_by = "+27820001002"
+        contact = {
             "uuid": "89341938-7c98-4c8e-bc9d-7cd8c9cfc468",
             "fields": {"persal": "testpersal", "sanc": "testsanc"},
         }
-        session["registered_by"] = "+27820001002"
-        session.save()
-        self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
+
+        send_registration_to_rapidpro(
+            contact, msisdn, registered_by, channel, clinic_code, timestamp
+        )
         [rp_call_1, rp_contact_call, rp_call_3, rp_flow_start_call] = responses.calls
 
         self.assertEqual(
@@ -739,10 +740,7 @@ class ClinicConfirmTests(TestCase):
         )
 
     @responses.activate
-    @mock.patch("registrations.views.send_registration_to_openhim")
-    @mock.patch("registrations.views.datetime")
-    @mock.patch("registrations.views.RegistrationConfirmClinic.get_channel")
-    def test_registration_created_for_new_contact(self, get_channel, dt, _):
+    def test_registration_created_for_new_contact(self):
         """
         Check that the correct information is being sent to RapidPro to create
         the registration.
@@ -774,18 +772,16 @@ class ClinicConfirmTests(TestCase):
         )
         responses.add(responses.POST, "http://testopenhim/nc/subscription")
 
-        dt.utcnow.return_value = datetime(2019, 1, 1)
-        get_channel.return_value = "WhatsApp"
-        session = self.client.session
-        session["clinic_name"] = "Test clinic"
-        session["registration_details"] = {
-            "msisdn": "+27820001001",
-            "clinic_code": "123456",
-        }
-        session["contact"] = {}
-        session["registered_by"] = "+27820001002"
-        session.save()
-        self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
+        timestamp = datetime(2019, 1, 1).timestamp()
+        channel = "WhatsApp"
+        msisdn = "+27820001001"
+        clinic_code = "123456"
+        registered_by = "+27820001002"
+        contact = {}
+
+        send_registration_to_rapidpro(
+            contact, msisdn, registered_by, channel, clinic_code, timestamp
+        )
         [rp_call_1, rp_contact_call, rp_call_3, rp_flow_start_call] = responses.calls
 
         self.assertEqual(

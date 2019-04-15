@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 
+from celery import chain
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
@@ -126,23 +127,24 @@ class RegistrationConfirmClinic(TemplateView):
             )
             return redirect(reverse_lazy("registrations:confirm-clinic"))
 
-        send_registration_to_rapidpro.delay(
-            contact=session["contact"],
-            msisdn=session["registration_details"]["msisdn"],
-            referral_msisdn=session.get("registered_by"),
-            channel=session["channel"],
-            clinic_code=session["registration_details"]["clinic_code"],
-            timestamp=datetime.utcnow().timestamp(),
-        )
-        send_registration_to_openhim.delay(
-            msisdn=session["registration_details"]["msisdn"],
-            referral_msisdn=session.get("registered_by"),
-            channel=session["channel"],
-            clinic_code=session["registration_details"]["clinic_code"],
-            persal=session.get("contact", {}).get("fields", {}).get("persal", None),
-            sanc=session.get("contact", {}).get("fields", {}).get("sanc", None),
-            timestamp=datetime.utcnow().timestamp(),
-        )
+        chain(
+            send_registration_to_rapidpro.s(
+                contact=session["contact"],
+                msisdn=session["registration_details"]["msisdn"],
+                referral_msisdn=session.get("registered_by"),
+                channel=session["channel"],
+                clinic_code=session["registration_details"]["clinic_code"],
+                timestamp=datetime.utcnow().timestamp(),
+            ),
+            send_registration_to_openhim.s(
+                referral_msisdn=session.get("registered_by"),
+                channel=session["channel"],
+                clinic_code=session["registration_details"]["clinic_code"],
+                persal=session.get("contact", {}).get("fields", {}).get("persal", None),
+                sanc=session.get("contact", {}).get("fields", {}).get("sanc", None),
+                timestamp=datetime.utcnow().timestamp(),
+            ),
+        ).apply_async()
 
         return redirect(reverse_lazy("registrations:success"))
 
