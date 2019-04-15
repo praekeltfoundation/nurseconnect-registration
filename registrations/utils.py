@@ -20,7 +20,7 @@ def get_rapidpro_contact(msisdn):
         raise e
     if contact:
         return contact.serialize()
-    return None
+    return {}
 
 
 def contact_in_rapidpro_groups(contact, groups):
@@ -29,6 +29,15 @@ def contact_in_rapidpro_groups(contact, groups):
             if group["name"] in groups:
                 return True
     return False
+
+
+def get_rapidpro_flow_by_name(name):
+    flows = tembaclient.get_flows().iterfetches()
+    for flow_batch in flows:
+        for flow in flow_batch:
+            if flow.name.lower() == name:
+                return flow
+    return None
 
 
 tembaclient = TembaClient(settings.RAPIDPRO_URL, settings.RAPIDPRO_TOKEN)

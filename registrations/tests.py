@@ -10,6 +10,10 @@ from django.urls import reverse
 
 from registrations.forms import RegistrationDetailsForm
 from registrations.models import ReferralLink
+from registrations.tasks import (
+    send_registration_to_openhim,
+    send_registration_to_rapidpro,
+)
 
 
 class RegistrationDetailsTest(TestCase):
@@ -97,7 +101,7 @@ class RegistrationDetailsTest(TestCase):
         form.is_valid()
         self.assertNotIn("msisdn", form.errors)
         self.assertIn("contact", r.wsgi_request.session)
-        self.assertIsNone(r.wsgi_request.session["contact"])
+        self.assertEqual(r.wsgi_request.session["contact"], {})
 
         contact_data = {
             "next": None,
@@ -409,8 +413,9 @@ class ClinicConfirmTests(TestCase):
         self.assertRedirects(r, reverse("registrations:registration-details"))
 
     @mock.patch("registrations.views.send_registration_to_openhim")
+    @mock.patch("registrations.views.send_registration_to_rapidpro")
     @mock.patch("registrations.views.RegistrationConfirmClinic.get_channel")
-    def test_goes_to_end_on_yes(self, get_channel, _):
+    def test_goes_to_end_on_yes(self, get_channel, _, _2):
         """
         If "yes" is selected, we should set the channel and redirect to the success page
         """
@@ -421,6 +426,7 @@ class ClinicConfirmTests(TestCase):
             "msisdn": "+27820001001",
             "clinic_code": "123456",
         }
+        session["contact"] = {}
         session.save()
         r = self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
         self.assertEqual(self.client.session["channel"], "WhatsApp")
@@ -438,7 +444,8 @@ class ClinicConfirmTests(TestCase):
 
     @responses.activate
     @mock.patch("registrations.views.send_registration_to_openhim")
-    def test_get_channel_whatsapp(self, _):
+    @mock.patch("registrations.views.send_registration_to_rapidpro")
+    def test_get_channel_whatsapp(self, _, _2):
         """
         If the user has a whatsapp account, the channel should be whatsapp
         """
@@ -457,6 +464,7 @@ class ClinicConfirmTests(TestCase):
             "msisdn": "+27820001001",
             "clinic_code": "123456",
         }
+        session["contact"] = {}
         session.save()
         r = self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
         self.assertEqual(self.client.session["channel"], "WhatsApp")
@@ -464,7 +472,8 @@ class ClinicConfirmTests(TestCase):
 
     @responses.activate
     @mock.patch("registrations.views.send_registration_to_openhim")
-    def test_get_channel_sms(self, _):
+    @mock.patch("registrations.views.send_registration_to_rapidpro")
+    def test_get_channel_sms(self, _, _2):
         """
         If the user doesn't have a whatsapp account, the channel should be sms
         """
@@ -479,6 +488,7 @@ class ClinicConfirmTests(TestCase):
             "msisdn": "+27820001001",
             "clinic_code": "123456",
         }
+        session["contact"] = {}
         session.save()
         r = self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
         self.assertEqual(self.client.session["channel"], "SMS")
@@ -525,26 +535,29 @@ class ClinicConfirmTests(TestCase):
         self.assertIn("WhatsApp API error limit reached", error_log)
 
     @responses.activate
-    @mock.patch("registrations.views.datetime")
-    @mock.patch("registrations.views.RegistrationConfirmClinic.get_channel")
-    def test_correct_info_sent_to_openhim(self, get_channel, dt):
+    def test_correct_info_sent_to_openhim(self):
         """
         Check that the correct values for the registration are being sent to the OpenHIM
         API.
         """
         responses.add(responses.POST, "http://testopenhim/nc/subscription")
-        dt.utcnow.return_value = datetime(2019, 1, 1)
-        get_channel.return_value = "WhatsApp"
-        session = self.client.session
-        session["clinic_name"] = "Test clinic"
-        session["registration_details"] = {
-            "msisdn": "+27820001001",
-            "clinic_code": "123456",
-        }
-        session["contact"] = {"fields": {"persal": "testpersal", "sanc": "testsanc"}}
-        session["registered_by"] = "+27820001002"
-        session.save()
-        self.client.post(reverse("registrations:confirm-clinic"), {"yes": ["Yes"]})
+        timestamp = datetime(2019, 1, 1).timestamp()
+        channel = "WhatsApp"
+        msisdn = "+27820001001"
+        clinic_code = "123456"
+        contact_persal = "testpersal"
+        contact_sanc = "testsanc"
+        registered_by = "+27820001002"
+
+        send_registration_to_openhim(
+            msisdn,
+            registered_by,
+            channel,
+            clinic_code,
+            contact_persal,
+            contact_sanc,
+            timestamp,
+        )
         [call] = responses.calls
         self.assertEqual(
             json.loads(call.request.body),
@@ -565,6 +578,230 @@ class ClinicConfirmTests(TestCase):
         )
         self.assertEqual(
             call.request.headers["Authorization"], "Basic UkVQTEFDRU1FOlJFUExBQ0VNRQ=="
+        )
+
+    def get_rp_responses_data(self):
+        """
+        Returns data to be used for resposes to RapidPro requests in multiple tests.
+        """
+        contact_data = {
+            "uuid": "89341938-7c98-4c8e-bc9d-7cd8c9cfc468",
+            "name": "Test User",
+            "language": None,
+            "urns": ["tel:+27820001001", "whatsapp:27820001001"],
+            "groups": [],
+            "fields": {
+                "persal": None,
+                "opt_out_date": None,
+                "registered_by": "+27820001002",
+                "facility_code": "123456",
+                "registration_date": "2019-01-01T00:00:00.000000Z",
+                "preferred_channel": "whatsapp",
+                "sanc": None,
+            },
+            "blocked": None,
+            "stopped": None,
+            "created_on": "2019-01-01T00:00:00.000000Z",
+            "modified_on": "2019-01-01T00:00:00.000000Z",
+        }
+        flows_data = {
+            "next": None,
+            "previous": None,
+            "results": [
+                {
+                    "uuid": "9766a4c2-12c3-4eeb-9e39-912662918a9c",
+                    "name": "Post Registration",
+                    "type": "message",
+                    "archived": False,
+                    "labels": [],
+                    "expires": 10080,
+                    "runs": {
+                        "active": 0,
+                        "completed": 1,
+                        "interrupted": 0,
+                        "expired": 0,
+                    },
+                    "created_on": "2019-04-09T09:25:01.532016Z",
+                    "modified_on": "2019-04-09T09:32:12.657544Z",
+                }
+            ],
+        }
+        flow_start_data = {
+            "uuid": "09d23a05-47fe-11e4-bfe9-b8f6b119e9ab",
+            "flow": {
+                "uuid": "9766a4c2-12c3-4eeb-9e39-912662918a9c",
+                "name": "Post Registration",
+            },
+            "groups": [],
+            "contacts": [{"uuid": "89341938-7c98-4c8e-bc9d-7cd8c9cfc468", "name": ""}],
+            "restart_participants": False,
+            "status": "complete",
+            "extra": {},
+            "created_on": "2013-08-19T19:11:21.082Z",
+            "modified_on": "2013-08-19T19:11:21.082Z",
+        }
+        return {
+            "contact_data": contact_data,
+            "flows_data": flows_data,
+            "flow_start_data": flow_start_data,
+        }
+
+    @responses.activate
+    def test_registration_created_for_existing_contact(self):
+        """
+        Check that the correct information is being sent to RapidPro to create
+        the registration.
+        """
+        contact_list_data = {
+            "next": None,
+            "previous": None,
+            "results": [
+                {
+                    "uuid": "89341938-7c98-4c8e-bc9d-7cd8c9cfc468",
+                    "name": "Test User",
+                    "language": None,
+                    "urns": ["tel:+27820001001", "whatsapp:27820001001"],
+                    "groups": [],
+                    "fields": {
+                        "persal": None,
+                        "opt_out_date": None,
+                        "registered_by": "+27820001002",
+                        "facility_code": "123456",
+                        "registration_date": "2019-01-01T00:00:00.000000Z",
+                        "preferred_channel": "whatsapp",
+                        "sanc": None,
+                    },
+                    "blocked": None,
+                    "stopped": None,
+                    "created_on": "2019-01-01T00:00:00.000000Z",
+                    "modified_on": "2019-01-01T00:00:00.000000Z",
+                }
+            ],
+        }
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json?"
+            + urlencode({"urn": "tel:+27820001001"}),
+            json=contact_list_data,
+        )
+
+        response_data = self.get_rp_responses_data()
+        responses.add(
+            responses.POST,
+            "https://test.rapidpro/api/v2/contacts.json?"
+            + urlencode({"uuid": "89341938-7c98-4c8e-bc9d-7cd8c9cfc468"}),
+            json=response_data["contact_data"],
+        )
+
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/flows.json?",
+            json=response_data["flows_data"],
+        )
+
+        responses.add(
+            responses.POST,
+            "https://test.rapidpro/api/v2/flow_starts.json",
+            json=response_data["flow_start_data"],
+        )
+
+        timestamp = datetime(2019, 1, 1).timestamp()
+        channel = "WhatsApp"
+        msisdn = "+27820001001"
+        clinic_code = "123456"
+        registered_by = "+27820001002"
+        contact = {
+            "uuid": "89341938-7c98-4c8e-bc9d-7cd8c9cfc468",
+            "fields": {"persal": "testpersal", "sanc": "testsanc"},
+        }
+
+        send_registration_to_rapidpro(
+            contact, msisdn, registered_by, channel, clinic_code, timestamp
+        )
+        [rp_call_1, rp_contact_call, rp_call_3, rp_flow_start_call] = responses.calls
+
+        self.assertEqual(
+            json.loads(rp_contact_call.request.body),
+            {
+                "fields": {
+                    "preferred_channel": "whatsapp",
+                    "registered_by": "+27820001002",
+                    "facility_code": "123456",
+                    "registration_date": "2019-01-01T00:00:00.000000Z",
+                }
+            },
+        )
+        self.assertEqual(
+            json.loads(rp_flow_start_call.request.body),
+            {
+                "flow": "9766a4c2-12c3-4eeb-9e39-912662918a9c",
+                "contacts": ["89341938-7c98-4c8e-bc9d-7cd8c9cfc468"],
+            },
+        )
+
+    @responses.activate
+    def test_registration_created_for_new_contact(self):
+        """
+        Check that the correct information is being sent to RapidPro to create
+        the registration.
+        """
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json?"
+            + urlencode({"urn": "tel:+27820001001"}),
+            json={"next": None, "previous": None, "results": []},
+        )
+
+        response_data = self.get_rp_responses_data()
+        responses.add(
+            responses.POST,
+            "https://test.rapidpro/api/v2/contacts.json?",
+            json=response_data["contact_data"],
+        )
+
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/flows.json?",
+            json=response_data["flows_data"],
+        )
+
+        responses.add(
+            responses.POST,
+            "https://test.rapidpro/api/v2/flow_starts.json",
+            json=response_data["flow_start_data"],
+        )
+        responses.add(responses.POST, "http://testopenhim/nc/subscription")
+
+        timestamp = datetime(2019, 1, 1).timestamp()
+        channel = "WhatsApp"
+        msisdn = "+27820001001"
+        clinic_code = "123456"
+        registered_by = "+27820001002"
+        contact = {}
+
+        send_registration_to_rapidpro(
+            contact, msisdn, registered_by, channel, clinic_code, timestamp
+        )
+        [rp_call_1, rp_contact_call, rp_call_3, rp_flow_start_call] = responses.calls
+
+        self.assertEqual(
+            json.loads(rp_contact_call.request.body),
+            {
+                "urns": ["tel:+27820001001", "whatsapp:27820001001"],
+                "fields": {
+                    "preferred_channel": "whatsapp",
+                    "registered_by": "+27820001002",
+                    "facility_code": "123456",
+                    "registration_date": "2019-01-01T00:00:00.000000Z",
+                },
+            },
+        )
+        self.assertEqual(
+            json.loads(rp_flow_start_call.request.body),
+            {
+                "flow": "9766a4c2-12c3-4eeb-9e39-912662918a9c",
+                "contacts": ["89341938-7c98-4c8e-bc9d-7cd8c9cfc468"],
+            },
         )
 
 
