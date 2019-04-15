@@ -69,6 +69,7 @@ def send_registration_to_rapidpro(
         "registered_by": referral_msisdn or msisdn,
         "facility_code": clinic_code,
         "registration_date": format_iso8601(datetime.fromtimestamp(timestamp)),
+        "reg_source": "mobi-site",
     }
     contact = get_rapidpro_contact(msisdn)  # Refresh contact so we don't recreate it
     if contact:
