@@ -434,12 +434,23 @@ class ClinicConfirmTests(TestCase):
 
     def test_goes_to_homepage_no(self):
         """
-        If "no" is selected, we should redirect to the registration details
+        If "no" is selected, we should redirect to the registration details page, set
+        the clinic code error message, and remove the clinic code from the initial
+        form values
         """
         session = self.client.session
         session["clinic_name"] = "Test clinic"
+        session["registration_details"] = {
+            "msisdn": "+27820001001",
+            "clinic_code": "123456",
+        }
         session.save()
         r = self.client.post(reverse("registrations:confirm-clinic"), {"no": ["No"]})
+        self.assertEqual(
+            self.client.session["clinic_code_error"],
+            "Please re-enter your 6-digit clinic code.",
+        )
+        self.assertNotIn("clinic_code", self.client.session["registration_details"])
         self.assertRedirects(r, reverse("registrations:registration-details"))
 
     @responses.activate

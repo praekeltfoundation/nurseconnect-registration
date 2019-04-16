@@ -37,6 +37,12 @@ class RegistrationDetailsView(FormView):
             pass
         return super().dispatch(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "clinic_code_error" in self.request.session:
+            context["clinic_code_error"] = self.request.session.pop("clinic_code_error")
+        return context
+
     def get_form_kwargs(self):
         kwargs = super(RegistrationDetailsView, self).get_form_kwargs()
         kwargs["request"] = self.request
@@ -66,6 +72,11 @@ class RegistrationConfirmOptIn(TemplateView):
         ):
             return redirect(reverse_lazy("registrations:registration-details"))
         return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["is_referral"] = "registered_by" in self.request.session
+        return context
 
     def post(self, request, *args, **kwargs):
         if "yes" in request.POST:
@@ -101,10 +112,12 @@ class RegistrationConfirmClinic(TemplateView):
             return "SMS"
 
     def post(self, request, *args, **kwargs):
-        if "yes" not in request.POST:
-            return redirect(reverse_lazy("registrations:registration-details"))
-
         session = request.session
+
+        if "yes" not in request.POST:
+            session["registration_details"].pop("clinic_code")
+            session["clinic_code_error"] = "Please re-enter your 6-digit clinic code."
+            return redirect(reverse_lazy("registrations:registration-details"))
 
         try:
             session["channel"] = self.get_channel(

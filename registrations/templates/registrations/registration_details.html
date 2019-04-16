@@ -20,6 +20,11 @@ Sign up to NurseConnect!
         {% if field.errors %}
           {{ field.errors }}
         {% endif %}
+        {% if field.name == "clinic_code" and clinic_code_error %}
+          <ul class="errorlist">
+            <li>{{ clinic_code_error }}</li>
+          </ul>
+        {% endif %}
     {% endfor %}
 
     <input type="submit" value="Done">
