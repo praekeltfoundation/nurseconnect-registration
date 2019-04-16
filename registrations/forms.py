@@ -61,7 +61,8 @@ class RegistrationDetailsForm(forms.Form):
 
     terms_and_conditions = forms.MultipleChoiceField(
         label=lazy(format_html)(
-            'Please read the <a href="{}">Terms & Conditions</a>.',
+            'Please read the <a href="{}">Terms & Conditions</a>. Does the nurse '
+            "signing up agree to them?",
             reverse_lazy("registrations:terms_and_conditions"),
         ),
         error_messages={
