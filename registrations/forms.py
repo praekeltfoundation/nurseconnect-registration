@@ -17,8 +17,8 @@ from registrations.validators import msisdn_validator
 
 class RegistrationDetailsForm(forms.Form):
     PHONE_NUMBER_ERROR_MESSAGE = (
-        "Sorry we don't recognise that number. Please enter the cellphone number "
-        "again, eg. 0762564722"
+        "Sorry, the number you entered is invalid. Please enter a valid 10-digit "
+        "cellphone number, eg. 0762564722"
     )
     EXISTING_NUMBER_ERROR_MESSAGE = (
         "Sorry, but this phone number is already registered. Please enter a new "
