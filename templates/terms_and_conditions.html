@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+  <a href="{% url "registrations:registration-details" %}">Back to registration</a>
   <h1>Terms & Conditions</h1>
 
   <p>NurseConnect is a National Department of Health (NDoH) initiative. It is the one stop shop where nurses can find information, ask for expert help, receive emotional support and have a line of direct communication with the National Department of Health. It utilises mobile software to give nurses in South Africa access to clinical, psychosocial and learning content. </p>
@@ -43,4 +44,5 @@
     <li>The Refer-a-Friend Campaign reserves the right to change the mechanics of the promotion at any time including the extension of the capped amount or the increase of the airtime incentive amount. </li>
     <li>The current version of these Terms and Conditions governs the rights and obligations of each party every time you engage with the Refer-a-Friend Campaign. NurseConnect reserves the right to change, modify, add to or remove from portions or the whole of these Terms and Conditions from time to time.</li>
   </ol>
+  <a href="{% url "registrations:registration-details" %}">Back to registration</a>
 {% endblock content %}
