@@ -28,6 +28,9 @@ class RegistrationDetailsForm(forms.Form):
         "Sorry we don't recognise that code. Please enter the 6-digit facility code "
         "again, eg. 535970"
     )
+    CHECKBOX_ERROR_MESSAGE = (
+        'We can\'t send NurseConnect messages to this number unless "Yes" is selected'
+    )
 
     msisdn = forms.CharField(
         label="Cellphone number of the nurse being registered",
@@ -49,12 +52,7 @@ class RegistrationDetailsForm(forms.Form):
             "We need to store and access the information of the person signing up. "
             "They may get messages on weekends and public holidays. Do they agree?"
         ),
-        error_messages={
-            "required": (
-                'We can\'t send NurseConnect messages to this number unless "Yes" is '
-                "selected"
-            )
-        },
+        error_messages={"required": CHECKBOX_ERROR_MESSAGE},
         choices=((True, "Yes"),),
         widget=forms.CheckboxSelectMultiple,
     )
@@ -65,11 +63,7 @@ class RegistrationDetailsForm(forms.Form):
             "signing up agree to them?",
             reverse_lazy("registrations:terms_and_conditions"),
         ),
-        error_messages={
-            "required": (
-                "You must agree to the terms and conditions before registering"
-            )
-        },
+        error_messages={"required": CHECKBOX_ERROR_MESSAGE},
         choices=((True, "I agree"),),
         widget=forms.CheckboxSelectMultiple,
     )
