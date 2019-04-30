@@ -12,7 +12,7 @@ from django.utils.html import format_html
 from temba_client.exceptions import TembaException
 
 from registrations.utils import contact_in_rapidpro_groups, get_rapidpro_contact
-from registrations.validators import msisdn_validator
+from registrations.validators import clinic_code_blacklist_validator, msisdn_validator
 
 
 class RegistrationDetailsForm(forms.Form):
@@ -46,6 +46,7 @@ class RegistrationDetailsForm(forms.Form):
             "min_length": CLINIC_CODE_ERROR_MESSAGE,
             "max_length": CLINIC_CODE_ERROR_MESSAGE,
         },
+        validators=[clinic_code_blacklist_validator],
     )
     consent = forms.MultipleChoiceField(
         label=(
