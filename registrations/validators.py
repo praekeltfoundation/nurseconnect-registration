@@ -7,8 +7,8 @@ PHONE_NUMBER_ERROR_MESSAGE = (
     "again, eg. 0762564722"
 )
 CLINIC_CODE_BLOCKED_ERROR_MESSAGE = (
-    "Sorry, this clinic code has been blocked for new registrations due to "
-    "fraudulent activity. Please enter a different clinic code."
+    "Sorry, but you can’t sign up for NurseConnect with this clinic code. It’s blocked "
+    "due to fraudulent activity. You can register using a different clinic code."
 )
 
 
