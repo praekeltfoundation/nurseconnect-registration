@@ -28,7 +28,7 @@ matrix:
         - IMAGE_NAME=praekeltfoundation/nurseconnect-registration:develop
         - REGISTRY_USER=praekeltorgdeploy
         # REGISTRY_PASS
-        - secure: "uKVFGWcWiYpVI9ouObZgt0vHJTzU4KedOGrKmwVLErxxQzo0bfAW7UzZz2AIbCkvVXxmKIHgDk5UkmGw/h13M/S+WHcxUgdiQjINhWTmzWbNd4pxs/l0pCXLiAI1qAFDekLFFCJgSRHQkk/kIEVqjSqwK9vfeqHDad2EPNRNDsa0j0JEE3pjz2IoRPIFNUiuo6cEKl2MGF56eraGEcCdjz339iXdG9Wha/xRyyIRrnt1wArnsvx/WzrpUHOtpFsPOvmilBdZswGbA0YNyPT6/gpnTU9X6H9TajWdEZ22DJMkm0G6qJ5UZwEkbbg16d+Yaif0gneLaZe1MsNWK8/1GciLX1KpkjZDOOYFlylsAvwQUekOdQtMXp7VZV7h/RorA8X3r8CsaG+EU2Y3oNAbytP4OAMWF2aXIyex54DAtI5gAofRYzuijicT3HMdMSXhxzcPQiU6r/pQ0593xgIFbUSMLORTEFLJKQsEsXbVv3LRPGrOepIrMw3FFZhw9QLZaU3MoOz8jgF10BL7UIujR2jET6ySsGSSwTKSN8m4t1HS4Ezxu4m+9dWOkrD+FdRhQGTmFwocIZh4YXxYOkbF2P9NjconjGtVmCyszFf7NScRBu1c1iFRR4dgmFX2VD3eodOj/NM5xnDT0MOXv4aU5ewRe5FXcGIj3awOz3ZMdeg="
+        - secure: "zRPyTjae6do/yO+jwtqveywZ9VwSDOeOG+HjHWeiLPSTjUeV+5LJ+K8da/08Z6InsIKC8I0mI7fhopGqf54klP5bQjdRm8x0W03NJwJ8k/R9cBtnrYuj5W/XI/ZW+Ii0jSwNFSaQItkAr4IrlTLBbagCdiq9jQDKg9dIboRK9lfkulI6QkMbWqS4l0GO/zmB6IiZq/HuDkdLko08Yu74vpx1DFnIcYU15o2vXXVueCbmLAySreespaKMGH7QcMlKaGlPOE8CbVT1JKrQX6kXNQY9elubUqMd3ti93sDVuNZVfEaQpsX3kk6oTz7zJBxZjwmhtSGbYU8Dn2tSHu9aQac9JJEqphq6VO39Kc0VsaO1Vu42k9idV63X/0ZqcuUeEy1YITI1RHkCvN3GKSW/XKzwuKyn+b0myH53bGSp809NcQNinh346OToQBbTO2kDGEZZDh/ab72chGOQSexRMYqZPywr00/CDFNzZJo73IxKo/jf8GlM6cY75sWZj1BxkcwHIGa49a863/ZOGFiIiRjf/gs6ka+yDIwyQOr0wPOEdQpdXuLyCeeLO2lpAK0jhBzfSqT4rM68vcYnaUAXvMpwyCttHmqc1ur1i7ayYnQV0h6BMQP6JsMMZJi9nI+fIleLhdH7BYrfLjpb6HXoHd1AZLT+iyUIuFSlnfgtt/4="
       before_script:
         - docker pull "$IMAGE_NAME" || true
         - pip install -r seaworthy/requirements.txt
