@@ -207,14 +207,14 @@ class RegistrationDetailsTest(TestCase):
         clinic_data = {
             "title": "Facility Check Nurse Connect",
             "headers": [],
-            "rows": [["123456", "yGVQRg2PXNh", "Test Clinic"]],
+            "rows": [["123457", "yGVQRg2PXNh", "Test Clinic"]],
             "width": 3,
             "height": 1,
         }
         responses.add(
             responses.GET,
             "http://testopenhim/NCfacilityCheck?"
-            + urlencode({"criteria": "value:123456"}),
+            + urlencode({"criteria": "value:123457"}),
             json=clinic_data,
             status=200,
         )
@@ -225,42 +225,42 @@ class RegistrationDetailsTest(TestCase):
             url,
             {
                 "msisdn": ["0820001003"],
-                "clinic_code": ["123456"],
+                "clinic_code": ["123457"],
                 "consent": ["True"],
                 "terms_and_conditions": ["True"],
             },
         )
         self.assertRedirects(r, reverse("registrations:confirm-optin"))
         self.assertEqual(self.client.session["clinic_name"], "Test Clinic")
-        self.assertEqual(self.client.session["clinic_code"], "123456")
+        self.assertEqual(self.client.session["clinic_code"], "123457")
 
     @responses.activate
     def test_clinic_code_validation(self):
         """
-        The clinic code should be digits and exist in DHIS2
+        The clinic code should be digits and exist in DHIS2, and not be on the blacklist
         """
         clinic_data = {
             "title": "Facility Check Nurse Connect",
             "headers": [],
-            "rows": [["123456", "yGVQRg2PXNh", "Test Clinic"]],
+            "rows": [["123457", "yGVQRg2PXNh", "Test Clinic"]],
             "width": 3,
             "height": 1,
         }
         responses.add(
             responses.GET,
             "http://testopenhim/NCfacilityCheck?"
-            + urlencode({"criteria": "value:123456"}),
+            + urlencode({"criteria": "value:123457"}),
             json=clinic_data,
             status=200,
         )
         r = self.client.get(reverse("registrations:registration-details"))
 
         form = RegistrationDetailsForm(
-            {"clinic_code": "123456"}, request=r.wsgi_request
+            {"clinic_code": "123457"}, request=r.wsgi_request
         )
         form.is_valid()
         self.assertNotIn("clinic_code", form.errors)
-        self.assertEqual(form.clean_clinic_code(), "123456")
+        self.assertEqual(form.clean_clinic_code(), "123457")
 
         # not digits
         form = RegistrationDetailsForm({"clinic_code": "foobar"})
@@ -283,6 +283,13 @@ class RegistrationDetailsTest(TestCase):
         form.is_valid()
         self.assertIn("clinic_code", form.errors)
 
+        # in blacklist
+        form = RegistrationDetailsForm(
+            {"clinic_code": "123456"}, request=r.wsgi_request
+        )
+        form.is_valid()
+        self.assertIn("clinic_code", form.errors)
+
     @responses.activate
     def test_check_clinic_code_error(self):
         """
@@ -292,7 +299,7 @@ class RegistrationDetailsTest(TestCase):
         responses.add(responses.GET, "http://testopenhim/NCfacilityCheck", status=500)
         r = self.client.get(reverse("registrations:registration-details"))
         form = RegistrationDetailsForm(
-            {"clinic_code": "123456"}, request=r.wsgi_request
+            {"clinic_code": "123457"}, request=r.wsgi_request
         )
         form.is_valid()
         self.assertIn("clinic_code", form.errors)
@@ -308,13 +315,13 @@ class RegistrationDetailsTest(TestCase):
         responses.add(responses.GET, "http://testopenhim/NCfacilityCheck", status=500)
         with self.assertLogs(level="ERROR") as logs:
             self.client.post(
-                reverse("registrations:registration-details"), {"clinic_code": "123456"}
+                reverse("registrations:registration-details"), {"clinic_code": "123457"}
             )
             self.client.post(
-                reverse("registrations:registration-details"), {"clinic_code": "123456"}
+                reverse("registrations:registration-details"), {"clinic_code": "123457"}
             )
             self.client.post(
-                reverse("registrations:registration-details"), {"clinic_code": "123456"}
+                reverse("registrations:registration-details"), {"clinic_code": "123457"}
             )
         [error_log] = logs.output
         self.assertIn("Jembi API error limit reached", error_log)
@@ -335,14 +342,14 @@ class RegistrationDetailsTest(TestCase):
         clinic_data = {
             "title": "Facility Check Nurse Connect",
             "headers": [],
-            "rows": [["123456", "yGVQRg2PXNh", "Test Clinic"]],
+            "rows": [["123457", "yGVQRg2PXNh", "Test Clinic"]],
             "width": 3,
             "height": 1,
         }
         responses.add(
             responses.GET,
             "http://testopenhim/NCfacilityCheck?"
-            + urlencode({"criteria": "value:123456"}),
+            + urlencode({"criteria": "value:123457"}),
             json=clinic_data,
             status=200,
         )
@@ -351,7 +358,7 @@ class RegistrationDetailsTest(TestCase):
             reverse("registrations:registration-details"),
             {
                 "msisdn": "0820001001",
-                "clinic_code": "123456",
+                "clinic_code": "123457",
                 "consent": ["True"],
                 "terms_and_conditions": ["True"],
             },
@@ -361,13 +368,13 @@ class RegistrationDetailsTest(TestCase):
             self.client.session["registration_details"],
             {
                 "msisdn": "+27820001001",
-                "clinic_code": "123456",
+                "clinic_code": "123457",
                 "consent": ["True"],
                 "terms_and_conditions": ["True"],
             },
         )
         self.assertEqual(self.client.session["clinic_name"], "Test Clinic")
-        self.assertEqual(self.client.session["clinic_code"], "123456")
+        self.assertEqual(self.client.session["clinic_code"], "123457")
 
 
 class OptinConfirmTests(TestCase):
@@ -424,7 +431,7 @@ class ClinicConfirmTests(TestCase):
         session["clinic_name"] = "Test clinic"
         session["registration_details"] = {
             "msisdn": "+27820001001",
-            "clinic_code": "123456",
+            "clinic_code": "123457",
         }
         session["contact"] = {}
         session.save()
@@ -442,7 +449,7 @@ class ClinicConfirmTests(TestCase):
         session["clinic_name"] = "Test clinic"
         session["registration_details"] = {
             "msisdn": "+27820001001",
-            "clinic_code": "123456",
+            "clinic_code": "123457",
         }
         session.save()
         r = self.client.post(reverse("registrations:confirm-clinic"), {"no": ["No"]})
@@ -473,7 +480,7 @@ class ClinicConfirmTests(TestCase):
         session["clinic_name"] = "Test clinic"
         session["registration_details"] = {
             "msisdn": "+27820001001",
-            "clinic_code": "123456",
+            "clinic_code": "123457",
         }
         session["contact"] = {}
         session.save()
@@ -497,7 +504,7 @@ class ClinicConfirmTests(TestCase):
         session["clinic_name"] = "Test clinic"
         session["registration_details"] = {
             "msisdn": "+27820001001",
-            "clinic_code": "123456",
+            "clinic_code": "123457",
         }
         session["contact"] = {}
         session.save()
@@ -555,7 +562,7 @@ class ClinicConfirmTests(TestCase):
         timestamp = datetime(2019, 1, 1).timestamp()
         channel = "WhatsApp"
         msisdn = "+27820001001"
-        clinic_code = "123456"
+        clinic_code = "123457"
         contact_persal = "testpersal"
         contact_sanc = "testsanc"
         registered_by = "+27820001002"
@@ -579,7 +586,7 @@ class ClinicConfirmTests(TestCase):
                 "cmsisdn": "+27820001001",
                 "dmsisdn": "+27820001002",
                 "rmsisdn": None,
-                "faccode": "123456",
+                "faccode": "123457",
                 "id": "27820001001^^^ZAF^TEL",
                 "dob": None,
                 "persal": "testpersal",
@@ -605,7 +612,7 @@ class ClinicConfirmTests(TestCase):
                 "persal": None,
                 "opt_out_date": None,
                 "registered_by": "+27820001002",
-                "facility_code": "123456",
+                "facility_code": "123457",
                 "registration_date": "2019-01-01T00:00:00.000000Z",
                 "preferred_channel": "whatsapp",
                 "sanc": None,
@@ -677,7 +684,7 @@ class ClinicConfirmTests(TestCase):
                         "persal": None,
                         "opt_out_date": None,
                         "registered_by": "+27820001002",
-                        "facility_code": "123456",
+                        "facility_code": "123457",
                         "registration_date": "2019-01-01T00:00:00.000000Z",
                         "preferred_channel": "whatsapp",
                         "sanc": None,
@@ -719,7 +726,7 @@ class ClinicConfirmTests(TestCase):
         timestamp = datetime(2019, 1, 1).timestamp()
         channel = "WhatsApp"
         msisdn = "+27820001001"
-        clinic_code = "123456"
+        clinic_code = "123457"
         registered_by = "+27820001002"
         contact = {
             "uuid": "89341938-7c98-4c8e-bc9d-7cd8c9cfc468",
@@ -737,7 +744,7 @@ class ClinicConfirmTests(TestCase):
                 "fields": {
                     "preferred_channel": "whatsapp",
                     "registered_by": "+27820001002",
-                    "facility_code": "123456",
+                    "facility_code": "123457",
                     "registration_date": "2019-01-01T00:00:00.000000Z",
                     "reg_source": "mobi-site",
                 }
@@ -787,7 +794,7 @@ class ClinicConfirmTests(TestCase):
         timestamp = datetime(2019, 1, 1).timestamp()
         channel = "WhatsApp"
         msisdn = "+27820001001"
-        clinic_code = "123456"
+        clinic_code = "123457"
         registered_by = "+27820001002"
         contact = {}
 
@@ -803,7 +810,7 @@ class ClinicConfirmTests(TestCase):
                 "fields": {
                     "preferred_channel": "whatsapp",
                     "registered_by": "+27820001002",
-                    "facility_code": "123456",
+                    "facility_code": "123457",
                     "registration_date": "2019-01-01T00:00:00.000000Z",
                     "reg_source": "mobi-site",
                 },
