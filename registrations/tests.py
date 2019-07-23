@@ -223,11 +223,7 @@ class RegistrationDetailsTest(TestCase):
         url = reverse("registrations:registration-details", args=[referral.code])
         r = self.client.post(
             url,
-            {
-                "msisdn": ["0820001003"],
-                "clinic_code": ["123457"],
-                "consent": ["True"],
-            },
+            {"msisdn": ["0820001003"], "clinic_code": ["123457"], "consent": ["True"]},
         )
         self.assertRedirects(r, reverse("registrations:confirm-optin"))
         self.assertEqual(self.client.session["clinic_name"], "Test Clinic")
@@ -355,20 +351,12 @@ class RegistrationDetailsTest(TestCase):
 
         r = self.client.post(
             reverse("registrations:registration-details"),
-            {
-                "msisdn": "0820001001",
-                "clinic_code": "123457",
-                "consent": ["True"],
-            },
+            {"msisdn": "0820001001", "clinic_code": "123457", "consent": ["True"]},
         )
         self.assertRedirects(r, reverse("registrations:confirm-clinic"))
         self.assertEqual(
             self.client.session["registration_details"],
-            {
-                "msisdn": "+27820001001",
-                "clinic_code": "123457",
-                "consent": ["True"],
-            },
+            {"msisdn": "+27820001001", "clinic_code": "123457", "consent": ["True"]},
         )
         self.assertEqual(self.client.session["clinic_name"], "Test Clinic")
         self.assertEqual(self.client.session["clinic_code"], "123457")
