@@ -227,7 +227,6 @@ class RegistrationDetailsTest(TestCase):
                 "msisdn": ["0820001003"],
                 "clinic_code": ["123457"],
                 "consent": ["True"],
-                "terms_and_conditions": ["True"],
             },
         )
         self.assertRedirects(r, reverse("registrations:confirm-optin"))
@@ -360,7 +359,6 @@ class RegistrationDetailsTest(TestCase):
                 "msisdn": "0820001001",
                 "clinic_code": "123457",
                 "consent": ["True"],
-                "terms_and_conditions": ["True"],
             },
         )
         self.assertRedirects(r, reverse("registrations:confirm-clinic"))
@@ -370,7 +368,6 @@ class RegistrationDetailsTest(TestCase):
                 "msisdn": "+27820001001",
                 "clinic_code": "123457",
                 "consent": ["True"],
-                "terms_and_conditions": ["True"],
             },
         )
         self.assertEqual(self.client.session["clinic_name"], "Test Clinic")

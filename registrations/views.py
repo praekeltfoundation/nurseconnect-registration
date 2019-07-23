@@ -181,7 +181,3 @@ class RegistrationSuccess(TemplateView):
         # Clear the session, since we no longer need it.
         self.request.session.clear()
         return context
-
-
-class TermsAndConditionsView(TemplateView):
-    template_name = "terms_and_conditions.html"
