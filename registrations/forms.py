@@ -6,9 +6,6 @@ import phonenumbers
 import requests
 from django import forms
 from django.conf import settings
-from django.urls import reverse_lazy
-from django.utils.functional import lazy
-from django.utils.html import format_html
 from temba_client.exceptions import TembaException
 
 from registrations.utils import contact_in_rapidpro_groups, get_rapidpro_contact
@@ -55,17 +52,6 @@ class RegistrationDetailsForm(forms.Form):
         ),
         error_messages={"required": CHECKBOX_ERROR_MESSAGE},
         choices=((True, "Yes"),),
-        widget=forms.CheckboxSelectMultiple,
-    )
-
-    terms_and_conditions = forms.MultipleChoiceField(
-        label=lazy(format_html)(
-            'Please read the <a href="{}">Terms & Conditions</a>. Does the nurse '
-            "signing up agree to them?",
-            reverse_lazy("registrations:terms_and_conditions"),
-        ),
-        error_messages={"required": CHECKBOX_ERROR_MESSAGE},
-        choices=((True, "I agree"),),
         widget=forms.CheckboxSelectMultiple,
     )
 

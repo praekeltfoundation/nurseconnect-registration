@@ -2,7 +2,6 @@
 
 {% block content %}
 <p>This number previously opted out of NurseConnect messages. Are you sure you want to sign up again?</p>
-<p>{% if is_referral %}The coworker who referred you won't get R10 airtime when this number registers. {% endif %}This number can still sign up and get R10 airtime when other nurses sign up using their link.</p>
 <form method="post">
     {% csrf_token %}
     <input type="submit" name="yes" value="Yes">

@@ -8,7 +8,6 @@ from registrations.views import (
     RegistrationConfirmOptIn,
     RegistrationDetailsView,
     RegistrationSuccess,
-    TermsAndConditionsView,
 )
 
 api_router = routers.DefaultRouter()
@@ -24,11 +23,6 @@ urlpatterns = [
     ),
     path("confirm_clinic", RegistrationConfirmClinic.as_view(), name="confirm-clinic"),
     path("success", RegistrationSuccess.as_view(), name="success"),
-    path(
-        "terms_and_conditions/",
-        TermsAndConditionsView.as_view(),
-        name="terms_and_conditions",
-    ),
     path("api/v1/", include(api_router.urls)),
     path("<referral>", RegistrationDetailsView.as_view(), name="registration-details"),
 ]
