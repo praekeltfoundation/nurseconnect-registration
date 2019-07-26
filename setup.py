@@ -10,7 +10,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        "Django==2.1.7",
+        "Django==2.2.3",
         "django-environ==0.4.5",
         "psycopg2==2.7.7",
         "phonenumberslite==8.10.7",
