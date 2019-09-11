@@ -595,7 +595,7 @@ class ClinicConfirmTests(TestCase):
         )
         self.assertEqual(
             openhim_call.request.headers["Authorization"],
-            "Basic UkVQTEFDRU1FOlJFUExBQ0VNRQ=="
+            "Basic UkVQTEFDRU1FOlJFUExBQ0VNRQ==",
         )
 
     def get_rp_responses_data(self):
