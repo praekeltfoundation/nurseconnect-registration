@@ -544,11 +544,16 @@ class ClinicConfirmTests(TestCase):
         API.
         """
         response_data = self.get_rp_responses_data()
+        contact_list = {
+            "next": None,
+            "previous": None,
+            "results": [response_data["contact_data"]],
+        }
         responses.add(
             responses.GET,
             "https://test.rapidpro/api/v2/contacts.json?"
             + urlencode({"urn": "tel:+27820001001"}),
-            json=response_data["contact_data"],
+            json=contact_list,
         )
 
         responses.add(responses.POST, "http://testopenhim/nc/subscription")
