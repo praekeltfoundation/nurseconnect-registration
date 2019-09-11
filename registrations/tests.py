@@ -576,7 +576,7 @@ class ClinicConfirmTests(TestCase):
         )
         [rp_call, openhim_call] = responses.calls
         self.assertEqual(
-            json.loads(call.request.body),
+            json.loads(openhim_call.request.body),
             {
                 "mha": 1,
                 "swt": 7,
@@ -594,7 +594,7 @@ class ClinicConfirmTests(TestCase):
             },
         )
         self.assertEqual(
-            call.request.headers["Authorization"], "Basic UkVQTEFDRU1FOlJFUExBQ0VNRQ=="
+            openhim_call.request.headers["Authorization"], "Basic UkVQTEFDRU1FOlJFUExBQ0VNRQ=="
         )
 
     def get_rp_responses_data(self):
