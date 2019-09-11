@@ -574,7 +574,7 @@ class ClinicConfirmTests(TestCase):
             contact_sanc,
             timestamp,
         )
-        [call] = responses.calls
+        [rp_call, openhim_call] = responses.calls
         self.assertEqual(
             json.loads(call.request.body),
             {
