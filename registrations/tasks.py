@@ -31,6 +31,8 @@ openhim_session.headers.update({"User-Agent": "NurseConnectRegistration"})
 def send_registration_to_openhim(
     msisdn, referral_msisdn, channel, clinic_code, persal, sanc, timestamp
 ):
+    contact = get_rapidpro_contact(msisdn)  # Created in send_registration_to_rapidpro
+    uuid = contact.get("uuid")
     response = openhim_session.post(
         url=urljoin(settings.OPENHIM_URL, "nc/subscription"),
         json={
@@ -46,6 +48,7 @@ def send_registration_to_openhim(
             "persal": persal,
             "sanc": sanc,
             "encdate": datetime.utcfromtimestamp(timestamp).strftime("%Y%m%d%H%M%S"),
+            "sid": uuid,
         },
     )
     response.raise_for_status()

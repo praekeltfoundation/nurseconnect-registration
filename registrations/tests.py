@@ -543,6 +543,14 @@ class ClinicConfirmTests(TestCase):
         Check that the correct values for the registration are being sent to the OpenHIM
         API.
         """
+        response_data = self.get_rp_responses_data()
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json?"
+            + urlencode({"urn": "tel:+27820001001"}),
+            json=response_data["contact_data"],
+        )
+
         responses.add(responses.POST, "http://testopenhim/nc/subscription")
         timestamp = datetime(2019, 1, 1).timestamp()
         channel = "WhatsApp"
@@ -577,6 +585,7 @@ class ClinicConfirmTests(TestCase):
                 "persal": "testpersal",
                 "sanc": "testsanc",
                 "encdate": "20190101000000",
+                "sid": "89341938-7c98-4c8e-bc9d-7cd8c9cfc468",
             },
         )
         self.assertEqual(
