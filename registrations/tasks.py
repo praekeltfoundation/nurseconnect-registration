@@ -29,10 +29,10 @@ openhim_session.headers.update({"User-Agent": "NurseConnectRegistration"})
     time_limit=15,
 )
 def send_registration_to_openhim(
-    msisdn, referral_msisdn, channel, clinic_code, persal, sanc, timestamp
+    contact, referral_msisdn, channel, clinic_code, persal, sanc, timestamp
 ):
-    contact = get_rapidpro_contact(msisdn)  # Created in send_registration_to_rapidpro
-    uuid = contact.get("uuid")
+    msisdn = contact[0]
+    uuid = contact[1]
     response = openhim_session.post(
         url=urljoin(settings.OPENHIM_URL, "nc/subscription"),
         json={
@@ -88,4 +88,4 @@ def send_registration_to_rapidpro(
     flow = get_rapidpro_flow_by_name("post registration")
     tembaclient.create_flow_start(flow.uuid, contacts=[contact.uuid])
 
-    return msisdn
+    return (msisdn, contact.get("uuid"))

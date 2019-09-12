@@ -566,7 +566,7 @@ class ClinicConfirmTests(TestCase):
         registered_by = "+27820001002"
 
         send_registration_to_openhim(
-            msisdn,
+            (msisdn, "89341938-7c98-4c8e-bc9d-7cd8c9cfc468"),
             registered_by,
             channel,
             clinic_code,
@@ -733,7 +733,7 @@ class ClinicConfirmTests(TestCase):
             "fields": {"persal": "testpersal", "sanc": "testsanc"},
         }
 
-        send_registration_to_rapidpro(
+        contact_info = send_registration_to_rapidpro(
             contact, msisdn, registered_by, channel, clinic_code, timestamp
         )
         [rp_call_1, rp_contact_call, rp_call_3, rp_flow_start_call] = responses.calls
@@ -757,6 +757,7 @@ class ClinicConfirmTests(TestCase):
                 "contacts": ["89341938-7c98-4c8e-bc9d-7cd8c9cfc468"],
             },
         )
+        self.assertEqual(contact_info, (msisdn, "89341938-7c98-4c8e-bc9d-7cd8c9cfc468"))
 
     @responses.activate
     def test_registration_created_for_new_contact(self):
@@ -798,7 +799,7 @@ class ClinicConfirmTests(TestCase):
         registered_by = "+27820001002"
         contact = {}
 
-        send_registration_to_rapidpro(
+        contact_info = send_registration_to_rapidpro(
             contact, msisdn, registered_by, channel, clinic_code, timestamp
         )
         [rp_call_1, rp_contact_call, rp_call_3, rp_flow_start_call] = responses.calls
@@ -823,6 +824,7 @@ class ClinicConfirmTests(TestCase):
                 "contacts": ["89341938-7c98-4c8e-bc9d-7cd8c9cfc468"],
             },
         )
+        self.assertEqual(contact_info, (msisdn, "89341938-7c98-4c8e-bc9d-7cd8c9cfc468"))
 
 
 class RegistrationSuccessTests(TestCase):
