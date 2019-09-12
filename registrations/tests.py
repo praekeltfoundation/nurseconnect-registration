@@ -598,8 +598,7 @@ class ClinicConfirmTests(TestCase):
             },
         )
         self.assertEqual(
-            call.request.headers["Authorization"],
-            "Basic UkVQTEFDRU1FOlJFUExBQ0VNRQ==",
+            call.request.headers["Authorization"], "Basic UkVQTEFDRU1FOlJFUExBQ0VNRQ=="
         )
 
     def get_rp_responses_data(self):
