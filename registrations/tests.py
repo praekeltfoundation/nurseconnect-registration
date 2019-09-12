@@ -566,7 +566,7 @@ class ClinicConfirmTests(TestCase):
         contact_sanc = "testsanc"
         registered_by = "+27820001002"
 
-        eid = uuid.uuid4()
+        eid = str(uuid.uuid4())
         send_registration_to_openhim(
             (msisdn, "89341938-7c98-4c8e-bc9d-7cd8c9cfc468"),
             registered_by,
@@ -577,9 +577,9 @@ class ClinicConfirmTests(TestCase):
             timestamp,
             eid,
         )
-        [rp_call, openhim_call] = responses.calls
+        [call] = responses.calls
         self.assertEqual(
-            json.loads(openhim_call.request.body),
+            json.loads(call.request.body),
             {
                 "mha": 1,
                 "swt": 7,
@@ -598,7 +598,7 @@ class ClinicConfirmTests(TestCase):
             },
         )
         self.assertEqual(
-            openhim_call.request.headers["Authorization"],
+            call.request.headers["Authorization"],
             "Basic UkVQTEFDRU1FOlJFUExBQ0VNRQ==",
         )
 

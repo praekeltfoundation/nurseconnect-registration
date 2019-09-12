@@ -89,4 +89,4 @@ def send_registration_to_rapidpro(
     flow = get_rapidpro_flow_by_name("post registration")
     tembaclient.create_flow_start(flow.uuid, contacts=[contact.uuid])
 
-    return (msisdn, contact.get("uuid"))
+    return (msisdn, contact.uuid)
