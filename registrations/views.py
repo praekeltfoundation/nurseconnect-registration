@@ -1,4 +1,5 @@
 import logging
+import uuid
 from datetime import datetime
 
 from celery import chain
@@ -156,6 +157,7 @@ class RegistrationConfirmClinic(TemplateView):
                 persal=session.get("contact", {}).get("fields", {}).get("persal", None),
                 sanc=session.get("contact", {}).get("fields", {}).get("sanc", None),
                 timestamp=datetime.utcnow().timestamp(),
+                eid=uuid.uuid4(),
             ),
         ).apply_async()
 

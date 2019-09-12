@@ -1,4 +1,5 @@
 import json
+import uuid
 from datetime import datetime
 from unittest import mock
 from urllib.parse import urlencode
@@ -543,6 +544,19 @@ class ClinicConfirmTests(TestCase):
         Check that the correct values for the registration are being sent to the OpenHIM
         API.
         """
+        response_data = self.get_rp_responses_data()
+        contact_list = {
+            "next": None,
+            "previous": None,
+            "results": [response_data["contact_data"]],
+        }
+        responses.add(
+            responses.GET,
+            "https://test.rapidpro/api/v2/contacts.json?"
+            + urlencode({"urn": "tel:+27820001001"}),
+            json=contact_list,
+        )
+
         responses.add(responses.POST, "http://testopenhim/nc/subscription")
         timestamp = datetime(2019, 1, 1).timestamp()
         channel = "WhatsApp"
@@ -552,14 +566,16 @@ class ClinicConfirmTests(TestCase):
         contact_sanc = "testsanc"
         registered_by = "+27820001002"
 
+        eid = str(uuid.uuid4())
         send_registration_to_openhim(
-            msisdn,
+            (msisdn, "89341938-7c98-4c8e-bc9d-7cd8c9cfc468"),
             registered_by,
             channel,
             clinic_code,
             contact_persal,
             contact_sanc,
             timestamp,
+            eid,
         )
         [call] = responses.calls
         self.assertEqual(
@@ -577,6 +593,8 @@ class ClinicConfirmTests(TestCase):
                 "persal": "testpersal",
                 "sanc": "testsanc",
                 "encdate": "20190101000000",
+                "sid": "89341938-7c98-4c8e-bc9d-7cd8c9cfc468",
+                "eid": eid,
             },
         )
         self.assertEqual(
@@ -718,7 +736,7 @@ class ClinicConfirmTests(TestCase):
             "fields": {"persal": "testpersal", "sanc": "testsanc"},
         }
 
-        send_registration_to_rapidpro(
+        contact_info = send_registration_to_rapidpro(
             contact, msisdn, registered_by, channel, clinic_code, timestamp
         )
         [rp_call_1, rp_contact_call, rp_call_3, rp_flow_start_call] = responses.calls
@@ -742,6 +760,7 @@ class ClinicConfirmTests(TestCase):
                 "contacts": ["89341938-7c98-4c8e-bc9d-7cd8c9cfc468"],
             },
         )
+        self.assertEqual(contact_info, (msisdn, "89341938-7c98-4c8e-bc9d-7cd8c9cfc468"))
 
     @responses.activate
     def test_registration_created_for_new_contact(self):
@@ -783,7 +802,7 @@ class ClinicConfirmTests(TestCase):
         registered_by = "+27820001002"
         contact = {}
 
-        send_registration_to_rapidpro(
+        contact_info = send_registration_to_rapidpro(
             contact, msisdn, registered_by, channel, clinic_code, timestamp
         )
         [rp_call_1, rp_contact_call, rp_call_3, rp_flow_start_call] = responses.calls
@@ -808,6 +827,7 @@ class ClinicConfirmTests(TestCase):
                 "contacts": ["89341938-7c98-4c8e-bc9d-7cd8c9cfc468"],
             },
         )
+        self.assertEqual(contact_info, (msisdn, "89341938-7c98-4c8e-bc9d-7cd8c9cfc468"))
 
 
 class RegistrationSuccessTests(TestCase):
