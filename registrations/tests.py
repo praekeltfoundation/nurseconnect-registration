@@ -1,4 +1,5 @@
 import json
+import uuid
 from datetime import datetime
 from unittest import mock
 from urllib.parse import urlencode
@@ -565,6 +566,7 @@ class ClinicConfirmTests(TestCase):
         contact_sanc = "testsanc"
         registered_by = "+27820001002"
 
+        eid = uuid.uuid4()
         send_registration_to_openhim(
             (msisdn, "89341938-7c98-4c8e-bc9d-7cd8c9cfc468"),
             registered_by,
@@ -573,6 +575,7 @@ class ClinicConfirmTests(TestCase):
             contact_persal,
             contact_sanc,
             timestamp,
+            eid,
         )
         [rp_call, openhim_call] = responses.calls
         self.assertEqual(
@@ -591,6 +594,7 @@ class ClinicConfirmTests(TestCase):
                 "sanc": "testsanc",
                 "encdate": "20190101000000",
                 "sid": "89341938-7c98-4c8e-bc9d-7cd8c9cfc468",
+                "eid": eid,
             },
         )
         self.assertEqual(

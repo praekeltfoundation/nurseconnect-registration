@@ -29,7 +29,7 @@ openhim_session.headers.update({"User-Agent": "NurseConnectRegistration"})
     time_limit=15,
 )
 def send_registration_to_openhim(
-    contact, referral_msisdn, channel, clinic_code, persal, sanc, timestamp
+    contact, referral_msisdn, channel, clinic_code, persal, sanc, timestamp, eid
 ):
     msisdn = contact[0]
     uuid = contact[1]
@@ -49,6 +49,7 @@ def send_registration_to_openhim(
             "sanc": sanc,
             "encdate": datetime.utcfromtimestamp(timestamp).strftime("%Y%m%d%H%M%S"),
             "sid": uuid,
+            "eid": eid,
         },
     )
     response.raise_for_status()
