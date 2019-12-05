@@ -1,6 +1,6 @@
 flake8
 mypy
-pytest>=3.6
+pytest>=3.6,<5
 pytest-cov
 pytest-django
 black
