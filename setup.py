@@ -17,7 +17,7 @@ setup(
         "django-prometheus==1.0.15",
         "django-watchman==0.16.0",
         "hashids==1.2.0",
-        "djangorestframework==3.9.2",
+        "djangorestframework==3.11.2",
         "coreapi==2.3.3",
         "rapidpro-python==2.1.8",
         "wabclient==2.2.1",
