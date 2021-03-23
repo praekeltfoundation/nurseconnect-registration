@@ -23,6 +23,8 @@ setup(
         "wabclient==2.2.1",
         # wabclient depends on six, but doesn't specify it in dependancies
         "six==1.12.0",
+        # celery requires vine < 5, but doesn't specify
+        "vine<5",
         "celery==4.3.0",
         "sentry-sdk==0.7.10",
     ],
